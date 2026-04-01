@@ -1,0 +1,15 @@
+{
+  "name": "academic-library-management-system",
+  "version": "1.0.0",
+  "description": "Graph-oriented academic library management system.",
+  "type": "module",
+  "scripts": {
+    "start": "python3 app.py",
+    "dev": "python3 app.py",
+    "db:init": "python3 app.py --init-db",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "better-sqlite3": "^11.10.0"
+  }
+}

@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Academic Library Management System</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700&family=Source+Sans+3:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div>
+        <p class="brand-kicker">Academic Library</p>
+        <h1 class="brand-title">Library Management System</h1>
+      </div>
+      <nav class="topnav" aria-label="Primary">
+        <span>Dashboard</span>
+        <span>Researchers</span>
+        <span>Collections</span>
+        <span>Analytics</span>
+      </nav>
+    </header>
+
+    <main class="page">
+      <section class="hero panel">
+        <div>
+          <p class="eyebrow">Dashboard Overview</p>
+          <h2 class="hero-title">Manage academic collections and research connections in one place.</h2>
+          <p class="intro">
+            This system stores authors, institutions, publications, and venues as a connected academic library network.
+          </p>
+        </div>
+        <div class="hero-note">
+          <strong>Project focus</strong>
+          <p>Library records are modeled as graph data so collaboration, citation, and journal influence can be explored directly.</p>
+        </div>
+      </section>
+
+      <section class="overview">
+        <article class="summary-card">
+          <span class="summary-label">Authors</span>
+          <strong id="authors-count">0</strong>
+        </article>
+        <article class="summary-card">
+          <span class="summary-label">Publications</span>
+          <strong id="publications-count">0</strong>
+        </article>
+        <article class="summary-card">
+          <span class="summary-label">Venues</span>
+          <strong id="venues-count">0</strong>
+        </article>
+        <article class="summary-card">
+          <span class="summary-label">Relationships</span>
+          <strong id="relationships-count">0</strong>
+        </article>
+      </section>
+
+      <section class="workspace">
+        <section class="panel">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Researchers</p>
+              <h2>Co-Author Network</h2>
+            </div>
+            <p class="section-copy">View author collaboration paths across the library network.</p>
+          </div>
+          <div class="controls">
+            <label for="author-select">Select author</label>
+            <select id="author-select"></select>
+          </div>
+          <p id="coauthor-definition" class="definition"></p>
+          <div id="coauthor-graph" class="graph-surface"></div>
+        </section>
+
+        <section class="panel">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Impact Analysis</p>
+              <h2>Author Impact Filter</h2>
+            </div>
+            <p class="section-copy">Shows high-impact authors and the venues where they publish.</p>
+          </div>
+          <p id="impact-definition" class="definition"></p>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Author</th>
+                  <th>Impact Score</th>
+                  <th>Publication Venues</th>
+                  <th>Top Publications</th>
+                </tr>
+              </thead>
+              <tbody id="impact-body"></tbody>
+            </table>
+          </div>
+        </section>
+      </section>
+
+      <section class="panel">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">Journal Intelligence</p>
+            <h2>Q1 Journal Influence Network</h2>
+          </div>
+          <p class="section-copy">Find authors connected to researchers publishing in top-tier journals.</p>
+        </div>
+        <p id="q1-definition" class="definition"></p>
+        <div id="q1-authors" class="pill-list"></div>
+        <div id="q1-graph" class="graph-surface"></div>
+      </section>
+    </main>
+
+    <script src="https://unpkg.com/cytoscape@3.30.4/dist/cytoscape.min.js"></script>
+    <script type="module" src="/app.js"></script>
+  </body>
+</html>

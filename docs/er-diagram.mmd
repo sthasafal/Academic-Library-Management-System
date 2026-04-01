@@ -1,0 +1,72 @@
+erDiagram
+  Graphs ||--o{ NodeGraphs : contains
+  Graphs ||--o{ EdgeGraphs : contains
+  Nodes ||--o{ NodeGraphs : appears_in
+  Edges ||--o{ EdgeGraphs : appears_in
+  Nodes ||--|| Authors : author_details
+  Nodes ||--|| Institutions : institution_details
+  Nodes ||--|| Publications : publication_details
+  Nodes ||--|| Venues : venue_details
+  Nodes ||--o{ Edges : source
+  Nodes ||--o{ Edges : target
+
+  Graphs {
+    int GraphID PK
+    string GraphName
+    string Description
+  }
+
+  Nodes {
+    int NodeID PK
+    string NodeType
+    string DisplayLabel
+    datetime CreatedAt
+  }
+
+  Authors {
+    int NodeID PK,FK
+    string FullName
+    string ResearchArea
+    string Email
+  }
+
+  Institutions {
+    int NodeID PK,FK
+    string Name
+    string Country
+  }
+
+  Publications {
+    int NodeID PK,FK
+    string Title
+    int PublicationYear
+    string DOI
+  }
+
+  Venues {
+    int NodeID PK,FK
+    string Name
+    string VenueKind
+    string Quartile
+    float ImpactScore
+  }
+
+  Edges {
+    int EdgeID PK
+    int SourceNodeID FK
+    int TargetNodeID FK
+    string EdgeType
+    int EdgeYear
+    float Weight
+    string MetadataJson
+  }
+
+  NodeGraphs {
+    int GraphID PK,FK
+    int NodeID PK,FK
+  }
+
+  EdgeGraphs {
+    int GraphID PK,FK
+    int EdgeID PK,FK
+  }
