@@ -10,9 +10,12 @@ const authorsCount = document.querySelector("#authors-count");
 const publicationsCount = document.querySelector("#publications-count");
 const venuesCount = document.querySelector("#venues-count");
 const relationshipsCount = document.querySelector("#relationships-count");
+const pages = [...document.querySelectorAll("[data-page]")];
+const pageLinks = [...document.querySelectorAll("[data-page-link]")];
 
 let coauthorGraph;
 let q1Graph;
+const defaultPage = "dashboard";
 
 function fetchJson(url) {
   return fetch(url).then((response) => {
@@ -36,6 +39,38 @@ function renderSummary(summary) {
   publicationsCount.textContent = summary.publications;
   venuesCount.textContent = summary.venues;
   relationshipsCount.textContent = summary.relationships;
+}
+
+function getRequestedPage() {
+  const requestedPage = window.location.hash.replace("#", "");
+  return pages.some((page) => page.dataset.page === requestedPage) ? requestedPage : defaultPage;
+}
+
+function refreshVisibleGraphs(activePage) {
+  if (activePage !== "researchers" && activePage !== "analytics") {
+    return;
+  }
+
+  requestAnimationFrame(() => {
+    for (const graph of [coauthorGraph, q1Graph]) {
+      graph?.resize();
+      graph?.fit(undefined, 24);
+    }
+  });
+}
+
+function showPage() {
+  const activePage = getRequestedPage();
+
+  for (const page of pages) {
+    page.classList.toggle("is-active", page.dataset.page === activePage);
+  }
+
+  for (const link of pageLinks) {
+    link.classList.toggle("is-active", link.dataset.pageLink === activePage);
+  }
+
+  refreshVisibleGraphs(activePage);
 }
 
 function createGraph(containerId, nodes, edges, palette = {}) {
@@ -173,10 +208,14 @@ async function loadQ1Influence() {
 }
 
 async function bootstrap() {
+  showPage();
   const summary = await fetchJson("/api/summary");
   renderSummary(summary);
   await Promise.all([loadAuthors(), loadCollections(), loadImpact(), loadQ1Influence()]);
+  showPage();
 }
+
+window.addEventListener("hashchange", showPage);
 
 bootstrap().catch((error) => {
   console.error(error);

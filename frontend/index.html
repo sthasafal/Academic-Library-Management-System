@@ -16,47 +16,50 @@
         <h1 class="brand-title">Library Management System</h1>
       </div>
       <nav class="topnav" aria-label="Primary">
-        <a href="#researchers">Researchers</a>
-        <a href="#collections">Collections</a>
-        <a href="#analytics">Analytics</a>
+        <a href="#dashboard" data-page-link="dashboard">Dashboard</a>
+        <a href="#researchers" data-page-link="researchers">Researchers</a>
+        <a href="#collections" data-page-link="collections">Collections</a>
+        <a href="#analytics" data-page-link="analytics">Analytics</a>
       </nav>
     </header>
 
     <main class="page">
-      <section class="hero panel">
-        <div>
-          <p class="eyebrow">Dashboard Overview</p>
-          <h2 class="hero-title">Manage academic collections and research connections in one place.</h2>
-          <p class="intro">
-            This system stores authors, institutions, publications, and venues as a connected academic library network.
-          </p>
-        </div>
-        <div class="hero-note">
-          <strong>Project focus</strong>
-          <p>Library records are modeled as graph data so collaboration, citation, and journal influence can be explored directly.</p>
-        </div>
+      <section id="dashboard" class="view" data-page="dashboard">
+        <section class="hero panel">
+          <div>
+            <p class="eyebrow">Dashboard Overview</p>
+            <h2 class="hero-title">Manage academic collections and research connections in one place.</h2>
+            <p class="intro">
+              This system stores authors, institutions, publications, and venues as a connected academic library network.
+            </p>
+          </div>
+          <div class="hero-note">
+            <strong>Project focus</strong>
+            <p>Library records are modeled as graph data so collaboration, citation, and journal influence can be explored directly.</p>
+          </div>
+        </section>
+
+        <section class="overview">
+          <article class="summary-card">
+            <span class="summary-label">Authors</span>
+            <strong id="authors-count">0</strong>
+          </article>
+          <article class="summary-card">
+            <span class="summary-label">Publications</span>
+            <strong id="publications-count">0</strong>
+          </article>
+          <article class="summary-card">
+            <span class="summary-label">Venues</span>
+            <strong id="venues-count">0</strong>
+          </article>
+          <article class="summary-card">
+            <span class="summary-label">Relationships</span>
+            <strong id="relationships-count">0</strong>
+          </article>
+        </section>
       </section>
 
-      <section class="overview">
-        <article class="summary-card">
-          <span class="summary-label">Authors</span>
-          <strong id="authors-count">0</strong>
-        </article>
-        <article class="summary-card">
-          <span class="summary-label">Publications</span>
-          <strong id="publications-count">0</strong>
-        </article>
-        <article class="summary-card">
-          <span class="summary-label">Venues</span>
-          <strong id="venues-count">0</strong>
-        </article>
-        <article class="summary-card">
-          <span class="summary-label">Relationships</span>
-          <strong id="relationships-count">0</strong>
-        </article>
-      </section>
-
-      <section id="researchers" class="panel">
+      <section id="researchers" class="view panel" data-page="researchers">
         <div class="section-head">
           <div>
             <p class="eyebrow">Researchers</p>
@@ -72,7 +75,7 @@
         <div id="coauthor-graph" class="graph-surface"></div>
       </section>
 
-      <section id="collections" class="panel">
+      <section id="collections" class="view panel" data-page="collections">
         <div class="section-head">
           <div>
             <p class="eyebrow">Collections</p>
@@ -97,7 +100,7 @@
         </div>
       </section>
 
-      <section id="analytics" class="analytics-grid">
+      <section id="analytics" class="view analytics-grid" data-page="analytics">
         <section class="panel">
           <div class="section-head">
             <div>

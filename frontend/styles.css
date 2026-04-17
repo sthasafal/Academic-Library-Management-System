@@ -68,11 +68,26 @@ h2 {
 
 .topnav a {
   color: var(--muted);
+  border-bottom: 2px solid transparent;
   text-decoration: none;
 }
 
-.topnav a:hover {
+.topnav a:hover,
+.topnav a.is-active {
   color: var(--accent);
+  border-color: var(--accent);
+}
+
+.view {
+  display: none;
+}
+
+.view.is-active {
+  display: block;
+}
+
+.view.analytics-grid.is-active {
+  display: grid;
 }
 
 .hero {
