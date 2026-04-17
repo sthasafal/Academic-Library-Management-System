@@ -4,6 +4,8 @@ const impactDefinition = document.querySelector("#impact-definition");
 const impactBody = document.querySelector("#impact-body");
 const q1Definition = document.querySelector("#q1-definition");
 const q1AuthorsElement = document.querySelector("#q1-authors");
+const venueList = document.querySelector("#venue-list");
+const collectionsBody = document.querySelector("#collections-body");
 const authorsCount = document.querySelector("#authors-count");
 const publicationsCount = document.querySelector("#publications-count");
 const venuesCount = document.querySelector("#venues-count");
@@ -102,7 +104,7 @@ function createGraph(containerId, nodes, edges, palette = {}) {
 async function loadAuthors() {
   const authors = await fetchJson("/api/authors");
   authorSelect.innerHTML = authors
-    .map((author) => `<option value="${author.NodeID}">${author.FullName} · ${author.institutionName}</option>`)
+    .map((author) => `<option value="${author.NodeID}">${author.FullName} - ${author.institutionName}</option>`)
     .join("");
 
   authorSelect.addEventListener("change", () => {
@@ -119,6 +121,27 @@ async function loadCoauthors(authorId) {
   coauthorDefinition.textContent = result.definition;
   coauthorGraph?.destroy();
   coauthorGraph = createGraph("coauthor-graph", result.nodes, result.edges);
+}
+
+async function loadCollections() {
+  const collections = await fetchJson("/api/collections");
+  venueList.innerHTML = collections.venues.map((venue) => `
+    <article class="venue-card">
+      <span>${venue.venueKind}${venue.quartile ? ` / ${venue.quartile}` : ""}</span>
+      <strong>${venue.name}</strong>
+      <small>${venue.publicationCount} publications / impact ${venue.impactScore}</small>
+    </article>
+  `).join("");
+
+  collectionsBody.innerHTML = collections.publications.map((publication) => `
+    <tr>
+      <td>${publication.title}</td>
+      <td>${publication.publicationYear}</td>
+      <td>${publication.authors}</td>
+      <td>${publication.venueName}</td>
+      <td>${publication.doi}</td>
+    </tr>
+  `).join("");
 }
 
 async function loadImpact() {
@@ -152,7 +175,7 @@ async function loadQ1Influence() {
 async function bootstrap() {
   const summary = await fetchJson("/api/summary");
   renderSummary(summary);
-  await Promise.all([loadAuthors(), loadImpact(), loadQ1Influence()]);
+  await Promise.all([loadAuthors(), loadCollections(), loadImpact(), loadQ1Influence()]);
 }
 
 bootstrap().catch((error) => {

@@ -77,6 +77,55 @@ export function listAuthors() {
   `).all();
 }
 
+export function listCollections() {
+  const db = ensureDatabase();
+  const publications = db.prepare(`
+    SELECT
+      p.NodeID AS publicationId,
+      p.Title AS title,
+      p.PublicationYear AS publicationYear,
+      p.DOI AS doi,
+      v.Name AS venueName,
+      v.VenueKind AS venueKind,
+      v.Quartile AS quartile,
+      v.ImpactScore AS impactScore,
+      GROUP_CONCAT(a.FullName, ', ') AS authors
+    FROM Publications p
+    JOIN Edges published
+      ON published.SourceNodeID = p.NodeID
+     AND published.EdgeType = 'PUBLISHED_IN'
+    JOIN Venues v
+      ON v.NodeID = published.TargetNodeID
+    JOIN Edges authored
+      ON authored.TargetNodeID = p.NodeID
+     AND authored.EdgeType = 'AUTHORED'
+    JOIN Authors a
+      ON a.NodeID = authored.SourceNodeID
+    GROUP BY p.NodeID, p.Title, p.PublicationYear, p.DOI, v.Name, v.VenueKind, v.Quartile, v.ImpactScore
+    ORDER BY p.PublicationYear DESC, p.Title
+  `).all();
+
+  const venues = db.prepare(`
+    SELECT
+      v.NodeID AS venueId,
+      v.Name AS name,
+      v.VenueKind AS venueKind,
+      v.Quartile AS quartile,
+      v.ImpactScore AS impactScore,
+      COUNT(p.NodeID) AS publicationCount
+    FROM Venues v
+    LEFT JOIN Edges published
+      ON published.TargetNodeID = v.NodeID
+     AND published.EdgeType = 'PUBLISHED_IN'
+    LEFT JOIN Publications p
+      ON p.NodeID = published.SourceNodeID
+    GROUP BY v.NodeID, v.Name, v.VenueKind, v.Quartile, v.ImpactScore
+    ORDER BY v.ImpactScore DESC, v.Name
+  `).all();
+
+  return { publications, venues };
+}
+
 export function getCoAuthorNetwork(authorId) {
   const db = ensureDatabase();
   const normalizedAuthorId = Number(authorId);

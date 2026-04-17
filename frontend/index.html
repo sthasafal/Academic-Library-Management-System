@@ -16,10 +16,9 @@
         <h1 class="brand-title">Library Management System</h1>
       </div>
       <nav class="topnav" aria-label="Primary">
-        <span>Dashboard</span>
-        <span>Researchers</span>
-        <span>Collections</span>
-        <span>Analytics</span>
+        <a href="#researchers">Researchers</a>
+        <a href="#collections">Collections</a>
+        <a href="#analytics">Analytics</a>
       </nav>
     </header>
 
@@ -57,27 +56,52 @@
         </article>
       </section>
 
-      <section class="workspace">
-        <section class="panel">
-          <div class="section-head">
-            <div>
-              <p class="eyebrow">Researchers</p>
-              <h2>Co-Author Network</h2>
-            </div>
-            <p class="section-copy">View author collaboration paths across the library network.</p>
+      <section id="researchers" class="panel">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">Researchers</p>
+            <h2>Co-Author Network</h2>
           </div>
-          <div class="controls">
-            <label for="author-select">Select author</label>
-            <select id="author-select"></select>
-          </div>
-          <p id="coauthor-definition" class="definition"></p>
-          <div id="coauthor-graph" class="graph-surface"></div>
-        </section>
+          <p class="section-copy">View author collaboration paths across the library network.</p>
+        </div>
+        <div class="controls">
+          <label for="author-select">Select author</label>
+          <select id="author-select"></select>
+        </div>
+        <p id="coauthor-definition" class="definition"></p>
+        <div id="coauthor-graph" class="graph-surface"></div>
+      </section>
 
+      <section id="collections" class="panel">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">Collections</p>
+            <h2>Publication Catalog</h2>
+          </div>
+          <p class="section-copy">Browse publication records and the journals or conferences connected to them.</p>
+        </div>
+        <div id="venue-list" class="venue-list"></div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Publication</th>
+                <th>Year</th>
+                <th>Authors</th>
+                <th>Venue</th>
+                <th>DOI</th>
+              </tr>
+            </thead>
+            <tbody id="collections-body"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="analytics" class="analytics-grid">
         <section class="panel">
           <div class="section-head">
             <div>
-              <p class="eyebrow">Impact Analysis</p>
+              <p class="eyebrow">Analytics</p>
               <h2>Author Impact Filter</h2>
             </div>
             <p class="section-copy">Shows high-impact authors and the venues where they publish.</p>
@@ -97,19 +121,19 @@
             </table>
           </div>
         </section>
-      </section>
 
-      <section class="panel">
-        <div class="section-head">
-          <div>
-            <p class="eyebrow">Journal Intelligence</p>
-            <h2>Q1 Journal Influence Network</h2>
+        <section class="panel">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Journal Intelligence</p>
+              <h2>Q1 Journal Influence Network</h2>
+            </div>
+            <p class="section-copy">Find authors connected to researchers publishing in top-tier journals.</p>
           </div>
-          <p class="section-copy">Find authors connected to researchers publishing in top-tier journals.</p>
-        </div>
-        <p id="q1-definition" class="definition"></p>
-        <div id="q1-authors" class="pill-list"></div>
-        <div id="q1-graph" class="graph-surface"></div>
+          <p id="q1-definition" class="definition"></p>
+          <div id="q1-authors" class="pill-list"></div>
+          <div id="q1-graph" class="graph-surface"></div>
+        </section>
       </section>
     </main>
 
