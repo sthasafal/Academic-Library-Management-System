@@ -4,9 +4,9 @@
   "description": "Graph-oriented academic library management system.",
   "type": "module",
   "scripts": {
-    "start": "python3 app.py",
-    "dev": "python3 app.py",
-    "db:init": "python3 app.py --init-db",
+    "start": "python backend/app.py",
+    "dev": "python backend/app.py",
+    "db:init": "python backend/app.py --init-db",
     "test": "node --test"
   },
   "dependencies": {

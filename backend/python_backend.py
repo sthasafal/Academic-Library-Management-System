@@ -6,8 +6,9 @@ import sqlite3
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent
-DB_PATH = Path(os.environ.get("GRAPH_DB_PATH", BASE_DIR / "data" / "academic_graph.db"))
-SCHEMA_PATH = BASE_DIR / "src" / "db" / "schema.sql"
+PROJECT_DIR = BASE_DIR.parent
+DB_PATH = Path(os.environ.get("GRAPH_DB_PATH", PROJECT_DIR / "data" / "academic_graph.db"))
+SCHEMA_PATH = PROJECT_DIR / "database" / "schema.sql"
 
 GRAPHS = [
     {"id": 1, "name": "Collaboration Graph", "description": "Authors, institutions, and collaboration relationships for network analysis."},

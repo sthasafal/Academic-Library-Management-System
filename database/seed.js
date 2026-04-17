@@ -1,4 +1,4 @@
-import { authors, citationPairs, graphs, institutions, publications, venues } from "../data/seedData.js";
+import { authors, citationPairs, graphs, institutions, publications, venues } from "./seedData.js";
 
 function insertNodes(db) {
   const insertNode = db.prepare(`

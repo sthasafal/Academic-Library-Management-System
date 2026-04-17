@@ -16,7 +16,8 @@ from python_backend import (
 )
 
 BASE_DIR = Path(__file__).resolve().parent
-PUBLIC_DIR = BASE_DIR / "public"
+PROJECT_DIR = BASE_DIR.parent
+PUBLIC_DIR = PROJECT_DIR / "frontend"
 
 app = Flask(__name__, static_folder=str(PUBLIC_DIR), static_url_path="")
 

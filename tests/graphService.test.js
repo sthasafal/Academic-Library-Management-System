@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { ensureDatabase } from "../src/db/init.js";
-import { getCoAuthorNetwork, getQ1InfluenceNetwork, listAuthorsByHIndex } from "../src/services/graphService.js";
+import { ensureDatabase } from "../database/init.js";
+import { getCoAuthorNetwork, getQ1InfluenceNetwork, listAuthorsByHIndex } from "../backend/graphService.js";
 
 test("h-index query returns authors at or above threshold", () => {
   ensureDatabase({ force: true });

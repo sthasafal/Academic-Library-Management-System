@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const defaultDbPath = path.resolve(__dirname, "../../data/academic_graph.db");
+const defaultDbPath = path.resolve(__dirname, "../data/academic_graph.db");
 
 let db;
 

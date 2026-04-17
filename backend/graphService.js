@@ -1,4 +1,4 @@
-import { ensureDatabase } from "../db/init.js";
+import { ensureDatabase } from "../database/init.js";
 
 function listToPlaceholders(values) {
   return values.map(() => "?").join(", ");

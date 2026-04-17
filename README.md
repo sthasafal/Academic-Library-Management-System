@@ -18,8 +18,8 @@ Academic library management system built around a graph-oriented data model. The
 ## Quick Start
 
 ```bash
-python3 -m pip install -r requirements.txt
-python3 app.py
+python -m pip install -r requirements.txt
+python backend/app.py
 ```
 
 Open `http://localhost:3000`.
@@ -27,17 +27,20 @@ Open `http://localhost:3000`.
 ## Useful Commands
 
 ```bash
-python3 app.py --init-db
+python backend/app.py --init-db
 npm test
 ```
 
 ## Project Structure
 
-- `app.py`: Flask application entry point
-- `python_backend.py`: Python SQLite initialization and query logic
-- `src/db/schema.sql`: relational schema for nodes, edges, subtype tables, and graph membership
-- `src/data/seedData.js`: seeded authors, publications, venues, and citation relationships
-- `public/`: static frontend and visualizations
+- `backend/app.py`: Flask application entry point
+- `backend/python_backend.py`: Python SQLite initialization and query logic
+- `backend/graphService.js`: JavaScript query service used by Node tests
+- `database/schema.sql`: relational schema for nodes, edges, subtype tables, and graph membership
+- `database/seedData.js`: seeded authors, publications, venues, and citation relationships
+- `database/`: SQLite schema, connection, initialization, and seed helpers
+- `frontend/`: static frontend and visualizations
+- `tests/`: automated graph query tests
 - `docs/er-diagram.mmd`: ER diagram source
 - `docs/system-design.md`: system design and architecture notes
 
