@@ -20,11 +20,15 @@ function computeHIndex(citationCounts) {
 }
 
 function mapGraphNode(row, extra = {}) {
+  const activeExtra = Object.fromEntries(
+    Object.entries(extra).filter(([, value]) => value !== false && value != null)
+  );
+
   return {
     id: row.NodeID,
     label: row.DisplayLabel,
     type: row.NodeType,
-    ...extra
+    ...activeExtra
   };
 }
 
@@ -130,8 +134,19 @@ export function getCoAuthorNetwork(authorId) {
   const db = ensureDatabase();
   const normalizedAuthorId = Number(authorId);
   const author = db.prepare(`
-    SELECT a.NodeID, a.FullName, a.ResearchArea
+    SELECT
+      a.NodeID,
+      a.FullName,
+      a.ResearchArea,
+      a.Email,
+      i.Name AS institutionName,
+      i.Country AS institutionCountry
     FROM Authors a
+    JOIN Edges affiliation
+      ON affiliation.SourceNodeID = a.NodeID
+     AND affiliation.EdgeType = 'AFFILIATED_WITH'
+    JOIN Institutions i
+      ON i.NodeID = affiliation.TargetNodeID
     WHERE a.NodeID = ?
   `).get(normalizedAuthorId);
 
@@ -170,10 +185,116 @@ export function getCoAuthorNetwork(authorId) {
     ORDER BY Weight DESC, EdgeID
   `).all(...nodeIdList, ...nodeIdList).map(mapGraphEdge);
 
+  const collaboratorRows = db.prepare(`
+    SELECT
+      collaborator.NodeID AS authorId,
+      collaborator.FullName AS authorName,
+      collaborator.ResearchArea AS researchArea,
+      institution.Name AS institutionName,
+      coauthor.Weight AS sharedPublications,
+      coauthor.EdgeYear AS latestYear
+    FROM Edges coauthor
+    JOIN Authors collaborator
+      ON collaborator.NodeID = CASE
+        WHEN coauthor.SourceNodeID = ? THEN coauthor.TargetNodeID
+        ELSE coauthor.SourceNodeID
+      END
+    JOIN Edges affiliation
+      ON affiliation.SourceNodeID = collaborator.NodeID
+     AND affiliation.EdgeType = 'AFFILIATED_WITH'
+    JOIN Institutions institution
+      ON institution.NodeID = affiliation.TargetNodeID
+    WHERE coauthor.EdgeType = 'CO_AUTHOR'
+      AND (coauthor.SourceNodeID = ? OR coauthor.TargetNodeID = ?)
+    ORDER BY coauthor.Weight DESC, collaborator.FullName
+  `).all(normalizedAuthorId, normalizedAuthorId, normalizedAuthorId);
+
+  const sharedPublicationRows = db.prepare(`
+    SELECT
+      other_authored.SourceNodeID AS collaboratorId,
+      p.Title AS title,
+      p.PublicationYear AS publicationYear
+    FROM Edges selected_authored
+    JOIN Edges other_authored
+      ON other_authored.TargetNodeID = selected_authored.TargetNodeID
+     AND other_authored.EdgeType = 'AUTHORED'
+     AND other_authored.SourceNodeID != ?
+    JOIN Publications p
+      ON p.NodeID = selected_authored.TargetNodeID
+    WHERE selected_authored.EdgeType = 'AUTHORED'
+      AND selected_authored.SourceNodeID = ?
+    ORDER BY p.PublicationYear DESC, p.Title
+  `).all(normalizedAuthorId, normalizedAuthorId);
+
+  const sharedPublicationsByAuthor = new Map();
+  for (const row of sharedPublicationRows) {
+    const publications = sharedPublicationsByAuthor.get(row.collaboratorId) || [];
+    publications.push({ title: row.title, publicationYear: row.publicationYear });
+    sharedPublicationsByAuthor.set(row.collaboratorId, publications);
+  }
+
+  const collaborators = collaboratorRows.map((row) => ({
+    ...row,
+    sharedPublicationsList: sharedPublicationsByAuthor.get(row.authorId) || []
+  }));
+
+  const publications = db.prepare(`
+    SELECT
+      p.NodeID AS publicationId,
+      p.Title AS title,
+      p.PublicationYear AS publicationYear,
+      p.DOI AS doi,
+      v.Name AS venueName,
+      v.Quartile AS quartile,
+      COUNT(DISTINCT citation.EdgeID) AS citationCount,
+      GROUP_CONCAT(DISTINCT other_author.FullName) AS coauthors
+    FROM Edges authored
+    JOIN Publications p
+      ON p.NodeID = authored.TargetNodeID
+    JOIN Edges published
+      ON published.SourceNodeID = p.NodeID
+     AND published.EdgeType = 'PUBLISHED_IN'
+    JOIN Venues v
+      ON v.NodeID = published.TargetNodeID
+    LEFT JOIN Edges citation
+      ON citation.TargetNodeID = p.NodeID
+     AND citation.EdgeType = 'CITES'
+    LEFT JOIN Edges other_authored
+      ON other_authored.TargetNodeID = p.NodeID
+     AND other_authored.EdgeType = 'AUTHORED'
+     AND other_authored.SourceNodeID != ?
+    LEFT JOIN Authors other_author
+      ON other_author.NodeID = other_authored.SourceNodeID
+    WHERE authored.EdgeType = 'AUTHORED'
+      AND authored.SourceNodeID = ?
+    GROUP BY p.NodeID, p.Title, p.PublicationYear, p.DOI, v.Name, v.Quartile
+    ORDER BY p.PublicationYear DESC, p.Title
+  `).all(normalizedAuthorId, normalizedAuthorId);
+
+  const totalSharedPublications = collaborators.reduce(
+    (total, collaborator) => total + Number(collaborator.sharedPublications || 0),
+    0
+  );
+  const strongestCollaborator = collaborators[0] || null;
+
   return {
     author,
     nodes,
     edges,
+    summary: {
+      directCoauthors: collaborators.length,
+      publicationCount: publications.length,
+      sharedPublications: totalSharedPublications,
+      institutionName: author.institutionName,
+      strongestCollaboration: strongestCollaborator
+        ? {
+            authorName: strongestCollaborator.authorName,
+            sharedPublications: strongestCollaborator.sharedPublications
+          }
+        : null
+    },
+    collaborators,
+    publications,
     definition: "One-hop co-author network centered on the selected author. Edge weight equals the number of shared publications."
   };
 }
