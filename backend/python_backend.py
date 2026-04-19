@@ -303,6 +303,145 @@ def list_authors() -> list[dict]:
     finally:
         connection.close()
 
+def search_authors(query: str) -> list[dict]:
+    connection = get_connection()
+    try:
+        rows = connection.execute(
+            """
+            SELECT a.NodeID, a.FullName, a.ResearchArea, i.Name AS institutionName
+            FROM Authors a
+            JOIN Institutions i
+              ON i.NodeID = (
+                SELECT e.TargetNodeID
+                FROM Edges e
+                WHERE e.SourceNodeID = a.NodeID
+                  AND e.EdgeType = 'AFFILIATED_WITH'
+                LIMIT 1
+              )
+            WHERE a.FullName LIKE ?
+            ORDER BY a.FullName
+            """,
+            (f"%{query}%",),
+        ).fetchall()
+        return [dict(row) for row in rows]
+    finally:
+        connection.close()
+
+def search_publications(query: str) -> list[dict]:
+    connection = get_connection()
+    try:
+        rows = connection.execute(
+            """
+            SELECT
+              p.NodeID AS publicationId,
+              p.Title AS title,
+              p.PublicationYear AS publicationYear,
+              p.DOI AS doi,
+              v.Name AS venueName,
+              v.VenueKind AS venueKind,
+              v.Quartile AS quartile,
+              v.ImpactScore AS impactScore,
+              GROUP_CONCAT(a.FullName, ', ') AS authors
+            FROM Publications p
+            JOIN Edges published
+              ON published.SourceNodeID = p.NodeID
+             AND published.EdgeType = 'PUBLISHED_IN'
+            JOIN Venues v
+              ON v.NodeID = published.TargetNodeID
+            JOIN Edges authored
+              ON authored.TargetNodeID = p.NodeID
+             AND authored.EdgeType = 'AUTHORED'
+            JOIN Authors a
+              ON a.NodeID = authored.SourceNodeID
+            WHERE p.Title LIKE ?
+            GROUP BY p.NodeID, p.Title, p.PublicationYear, p.DOI, v.Name, v.VenueKind, v.Quartile, v.ImpactScore
+            ORDER BY p.PublicationYear DESC, p.Title
+            """,
+            (f"%{query}%",),
+        ).fetchall()
+        return [dict(row) for row in rows]
+    finally:
+        connection.close()
+
+def search_institutions(query: str) -> list[dict]:
+    connection = get_connection()
+    try:
+        rows = connection.execute(
+            """
+            SELECT
+              i.NodeID AS institutionId,
+              i.Name AS name,
+              i.Country AS country,
+              COUNT(a.NodeID) AS authorCount
+            FROM Institutions i
+            LEFT JOIN Edges e
+              ON e.TargetNodeID = i.NodeID
+             AND e.EdgeType = 'AFFILIATED_WITH'
+            LEFT JOIN Authors a
+              ON a.NodeID = e.SourceNodeID
+            WHERE i.Name LIKE ?
+            GROUP BY i.NodeID, i.Name, i.Country
+            ORDER BY i.Name
+            """,
+            (f"%{query}%",),
+        ).fetchall()
+        return [dict(row) for row in rows]
+    finally:
+        connection.close()
+
+def search_venues(query: str) -> list[dict]:
+    connection = get_connection()
+    try:
+        rows = connection.execute(
+            """
+            SELECT
+              v.NodeID AS venueId,
+              v.Name AS name,
+              v.VenueKind AS venueKind,
+              v.Quartile AS quartile,
+              v.ImpactScore AS impactScore,
+              COUNT(p.NodeID) AS publicationCount
+            FROM Venues v
+            LEFT JOIN Edges e
+              ON e.TargetNodeID = v.NodeID
+             AND e.EdgeType = 'PUBLISHED_IN'
+            LEFT JOIN Publications p
+              ON p.NodeID = e.SourceNodeID
+            WHERE v.Name LIKE ?
+            GROUP BY v.NodeID, v.Name, v.VenueKind, v.Quartile, v.ImpactScore
+            ORDER BY v.Name
+            """,
+            (f"%{query}%",),
+        ).fetchall()
+        return [dict(row) for row in rows]
+    finally:
+        connection.close()
+
+def get_authors_by_institution(institution_id: int) -> list[dict]:
+    connection = get_connection()
+    try:
+        rows = connection.execute(
+            """
+            SELECT
+              a.NodeID,
+              a.FullName,
+              a.ResearchArea,
+              a.Email,
+              i.Name AS institutionName
+            FROM Authors a
+            JOIN Edges e
+              ON e.SourceNodeID = a.NodeID
+             AND e.EdgeType = 'AFFILIATED_WITH'
+            JOIN Institutions i
+              ON i.NodeID = e.TargetNodeID
+            WHERE i.NodeID = ?
+            ORDER BY a.FullName
+            """,
+            (institution_id,),
+        ).fetchall()
+        return [dict(row) for row in rows]
+    finally:
+        connection.close()
 
 def list_collections() -> dict:
     connection = get_connection()
