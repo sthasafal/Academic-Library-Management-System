@@ -63,8 +63,31 @@ h2 {
 .topnav {
   display: flex;
   gap: 1rem;
-  color: var(--muted);
   font-weight: 600;
+}
+
+.topnav a {
+  color: var(--muted);
+  border-bottom: 2px solid transparent;
+  text-decoration: none;
+}
+
+.topnav a:hover,
+.topnav a.is-active {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.view {
+  display: none;
+}
+
+.view.is-active {
+  display: block;
+}
+
+.view.analytics-grid.is-active {
+  display: grid;
 }
 
 .hero {
@@ -142,7 +165,7 @@ h2 {
   color: var(--accent-strong);
 }
 
-.workspace {
+.analytics-grid {
   display: grid;
   grid-template-columns: 1.15fr 0.85fr;
   gap: 1.2rem;
@@ -180,6 +203,32 @@ select {
 
 .definition {
   margin: 0 0 1rem;
+}
+
+.venue-list {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.8rem;
+  margin-bottom: 1rem;
+}
+
+.venue-card {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0.85rem;
+  background: var(--surface-soft);
+}
+
+.venue-card span,
+.venue-card small {
+  display: block;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.venue-card strong {
+  display: block;
+  margin: 0.25rem 0;
 }
 
 .graph-surface {
@@ -235,7 +284,7 @@ th {
   .topbar,
   .section-head,
   .hero,
-  .workspace {
+  .analytics-grid {
     grid-template-columns: 1fr;
     flex-direction: column;
     align-items: start;
@@ -246,6 +295,10 @@ th {
     display: grid;
     grid-template-columns: 1fr 1fr;
     width: 100%;
+  }
+
+  .venue-list {
+    grid-template-columns: 1fr;
   }
 
   .graph-surface {

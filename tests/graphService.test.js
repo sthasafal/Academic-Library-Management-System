@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { ensureDatabase } from "../database/init.js";
-import { getCoAuthorNetwork, getQ1InfluenceNetwork, listAuthorsByHIndex } from "../backend/graphService.js";
+import { getCoAuthorNetwork, getQ1InfluenceNetwork, listAuthorsByHIndex, listCollections } from "../backend/graphService.js";
 
 test("h-index query returns authors at or above threshold", () => {
   ensureDatabase({ force: true });
@@ -21,6 +21,16 @@ test("co-author query returns focused one-hop network", () => {
   assert.equal(network.author.FullName, "Alice Carter");
   assert.deepEqual(labels, ["Alice Carter", "Ben Ortiz", "Chloe Zhang", "Daniel Kim", "Emma Patel", "Farah Nasser"]);
   assert.ok(network.edges.some((edge) => edge.weight >= 2));
+});
+
+test("collections query returns publications and venues", () => {
+  ensureDatabase({ force: true });
+  const collections = listCollections();
+
+  assert.equal(collections.publications.length, 15);
+  assert.equal(collections.venues.length, 6);
+  assert.ok(collections.publications.some((publication) => publication.title === "Graph Models for Digital Libraries"));
+  assert.ok(collections.venues.some((venue) => venue.name === "Journal of Graph Analytics" && venue.publicationCount > 0));
 });
 
 test("Q1 influence query returns qualifying authors and network", () => {

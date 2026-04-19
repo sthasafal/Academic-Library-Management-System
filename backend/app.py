@@ -11,6 +11,7 @@ from python_backend import (
     get_overview_stats,
     get_q1_influence_network,
     get_db_path,
+    list_collections,
     list_authors,
     list_authors_by_h_index,
 )
@@ -30,6 +31,11 @@ def summary():
 @app.get("/api/authors")
 def authors():
     return jsonify(list_authors())
+
+
+@app.get("/api/collections")
+def collections():
+    return jsonify(list_collections())
 
 
 @app.get("/api/query/coauthors")
