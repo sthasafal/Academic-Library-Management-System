@@ -40,7 +40,7 @@ npm test
 - `database/seedData.js`: seeded authors, publications, venues, and citation relationships
 - `database/`: SQLite schema, connection, initialization, and seed helpers
 - `frontend/`: static frontend and visualizations
-- - `tests/`: automated graph query tests
+- `tests/`: automated graph query tests
 
 
 ## Analytics
