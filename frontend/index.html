@@ -1,146 +1,143 @@
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Academic Library Management System</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700&family=Source+Sans+3:wght@400;500;600;700&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="/styles.css" />
-  </head>
-  <body>
-    <header class="topbar">
-      <div>
-        <p class="brand-kicker">Academic Library</p>
-        <h1 class="brand-title">Library Management System</h1>
-      </div>
-      <nav class="topnav" aria-label="Primary">
-        <a href="#dashboard" data-page-link="dashboard">Dashboard</a>
-        <a href="#researchers" data-page-link="researchers">Researchers</a>
-        <a href="#collections" data-page-link="collections">Collections</a>
-        <a href="#analytics" data-page-link="analytics">Analytics</a>
-      </nav>
-    </header>
+<html>
+<head>
+  <title>Academic Library System</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
 
-    <main class="page">
-      <section id="dashboard" class="view" data-page="dashboard">
-        <section class="hero panel">
-          <div>
-            <p class="eyebrow">Dashboard Overview</p>
-            <h2 class="hero-title">Manage academic collections and research connections in one place.</h2>
-            <p class="intro">
-              This system stores authors, institutions, publications, and venues as a connected academic library network.
-            </p>
-          </div>
-          <div class="hero-note">
-            <strong>Project focus</strong>
-            <p>Library records are modeled as graph data so collaboration, citation, and journal influence can be explored directly.</p>
-          </div>
-        </section>
+<body>
 
-        <section class="overview">
-          <article class="summary-card">
-            <span class="summary-label">Authors</span>
-            <strong id="authors-count">0</strong>
-          </article>
-          <article class="summary-card">
-            <span class="summary-label">Publications</span>
-            <strong id="publications-count">0</strong>
-          </article>
-          <article class="summary-card">
-            <span class="summary-label">Venues</span>
-            <strong id="venues-count">0</strong>
-          </article>
-          <article class="summary-card">
-            <span class="summary-label">Relationships</span>
-            <strong id="relationships-count">0</strong>
-          </article>
-        </section>
-      </section>
+<header class="topbar">
+  <div>
+    <p class="brand-kicker">Academic System</p>
+    <h1 class="brand-title">Library Management</h1>
+  </div>
+</header>
 
-      <section id="researchers" class="view panel" data-page="researchers">
-        <div class="section-head">
-          <div>
-            <p class="eyebrow">Researchers</p>
-            <h2>Co-Author Network</h2>
-          </div>
-          <p class="section-copy">View author collaboration paths across the library network.</p>
-        </div>
-        <div class="controls">
-          <label for="author-select">Select author</label>
-          <select id="author-select"></select>
-        </div>
-        <p id="coauthor-definition" class="definition"></p>
-        <div id="coauthor-graph" class="graph-surface"></div>
-      </section>
+<main class="page">
 
-      <section id="collections" class="view panel" data-page="collections">
-        <div class="section-head">
-          <div>
-            <p class="eyebrow">Collections</p>
-            <h2>Publication Catalog</h2>
-          </div>
-          <p class="section-copy">Browse publication records and the journals or conferences connected to them.</p>
-        </div>
-        <div id="venue-list" class="venue-list"></div>
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Publication</th>
-                <th>Year</th>
-                <th>Authors</th>
-                <th>Venue</th>
-                <th>DOI</th>
-              </tr>
-            </thead>
-            <tbody id="collections-body"></tbody>
-          </table>
-        </div>
-      </section>
+  <section id="loginView" class="view is-active">
+    <div class="panel" style="max-width: 400px; margin: auto;">
+      <h2>Login</h2>
 
-      <section id="analytics" class="view analytics-grid" data-page="analytics">
-        <section class="panel">
-          <div class="section-head">
-            <div>
-              <p class="eyebrow">Analytics</p>
-              <h2>Author Impact Filter</h2>
-            </div>
-            <p class="section-copy">Shows high-impact authors and the venues where they publish.</p>
-          </div>
-          <p id="impact-definition" class="definition"></p>
-          <div class="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Author</th>
-                  <th>Impact Score</th>
-                  <th>Publication Venues</th>
-                  <th>Top Publications</th>
-                </tr>
-              </thead>
-              <tbody id="impact-body"></tbody>
-            </table>
-          </div>
-        </section>
+      <input id="email" placeholder="Email">
+      <input id="password" type="password" placeholder="Password">
 
-        <section class="panel">
-          <div class="section-head">
-            <div>
-              <p class="eyebrow">Journal Intelligence</p>
-              <h2>Q1 Journal Influence Network</h2>
-            </div>
-            <p class="section-copy">Find authors connected to researchers publishing in top-tier journals.</p>
-          </div>
-          <p id="q1-definition" class="definition"></p>
-          <div id="q1-authors" class="pill-list"></div>
-          <div id="q1-graph" class="graph-surface"></div>
-        </section>
-      </section>
-    </main>
+      <p id="loginMsg" class="definition"></p>
 
-    <script src="https://unpkg.com/cytoscape@3.30.4/dist/cytoscape.min.js"></script>
-    <script type="module" src="/app.js"></script>
-  </body>
+      <button onclick="login()">Login</button>
+      <p class="definition">
+        Don’t have an account? <a onclick="showSignup()">Signup</a>
+      </p>
+    </div>
+  </section>
+
+  <section id="signupView" class="view">
+    <div class="panel" style="max-width: 400px; margin: auto;">
+      <h2>Signup</h2>
+
+      <input id="newEmail" placeholder="Email">
+      <input id="newPassword" type="password" placeholder="Password">
+      <input id="confirmPassword" type="password" placeholder="Confirm Password">
+
+      <p id="signupMsg" class="definition"></p>
+
+      <button onclick="signup()">Signup</button>
+      <p class="definition">
+        Already have an account? <a onclick="showLogin()">Login</a>
+      </p>
+    </div>
+  </section>
+
+  <section id="dashboardView" class="view">
+    <div class="panel">
+      <h2>Dashboard</h2>
+      <p id="welcomeText" class="definition"></p>
+      <button onclick="logout()">Logout</button>
+    </div>
+  </section>
+
+</main>
+
+<script>
+function setView(id) {
+  document.querySelectorAll(".view").forEach(v => v.classList.remove("is-active"));
+  document.getElementById(id).classList.add("is-active");
+}
+
+function showLogin() {
+  setView("loginView");
+}
+
+function showSignup() {
+  setView("signupView");
+}
+
+function showDashboard() {
+  const user = JSON.parse(localStorage.getItem("user"));
+  if (user) {
+    document.getElementById("welcomeText").textContent = "Welcome, " + user.email;
+  }
+  setView("dashboardView");
+}
+
+function login() {
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+  const msg = document.getElementById("loginMsg");
+
+  const user = JSON.parse(localStorage.getItem("user"));
+
+  if (!email || !password) {
+    msg.textContent = "Please fill all fields";
+    return;
+  }
+
+  if (!user) {
+    msg.textContent = "No account found. Please signup.";
+    return;
+  }
+
+  if (user.email === email && user.password === password) {
+    msg.textContent = "";
+    showDashboard();
+  } else {
+    msg.textContent = "Invalid email or password";
+  }
+}
+
+function signup() {
+  const email = document.getElementById("newEmail").value;
+  const password = document.getElementById("newPassword").value;
+  const confirmPassword = document.getElementById("confirmPassword").value;
+  const msg = document.getElementById("signupMsg");
+
+  if (!email || !password || !confirmPassword) {
+    msg.textContent = "All fields are required";
+    return;
+  }
+
+  if (password !== confirmPassword) {
+    msg.textContent = "Passwords do not match";
+    return;
+  }
+
+  localStorage.setItem("user", JSON.stringify({ email, password }));
+
+  msg.textContent = "Signup successful";
+  setTimeout(showLogin, 800);
+}
+
+function logout() {
+  localStorage.removeItem("user");
+  showLogin();
+}
+
+const user = localStorage.getItem("user");
+if (user) {
+  showDashboard();
+}
+</script>
+
+</body>
 </html>

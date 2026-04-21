@@ -19,10 +19,7 @@ const defaultPage = "dashboard";
 
 function fetchJson(url) {
   return fetch(url).then((response) => {
-    if (!response.ok) {
-      throw new Error(`Request failed for ${url}`);
-    }
-
+    if (!response.ok) throw new Error(`Request failed for ${url}`);
     return response.json();
   });
 }
@@ -35,6 +32,7 @@ function buildElements(nodes, edges) {
 }
 
 function renderSummary(summary) {
+  if (!authorsCount) return;
   authorsCount.textContent = summary.authors;
   publicationsCount.textContent = summary.publications;
   venuesCount.textContent = summary.venues;
@@ -43,13 +41,13 @@ function renderSummary(summary) {
 
 function getRequestedPage() {
   const requestedPage = window.location.hash.replace("#", "");
-  return pages.some((page) => page.dataset.page === requestedPage) ? requestedPage : defaultPage;
+  return pages.some((p) => p.dataset.page === requestedPage)
+    ? requestedPage
+    : defaultPage;
 }
 
 function refreshVisibleGraphs(activePage) {
-  if (activePage !== "researchers" && activePage !== "analytics") {
-    return;
-  }
+  if (activePage !== "researchers" && activePage !== "analytics") return;
 
   requestAnimationFrame(() => {
     for (const graph of [coauthorGraph, q1Graph]) {
@@ -73,151 +71,88 @@ function showPage() {
   refreshVisibleGraphs(activePage);
 }
 
-function createGraph(containerId, nodes, edges, palette = {}) {
-  return cytoscape({
-    container: document.getElementById(containerId),
-    elements: buildElements(nodes, edges),
-    layout: {
-      name: "cose",
-      animate: true,
-      padding: 24
-    },
-    style: [
-      {
-        selector: "node",
-        style: {
-          label: "data(label)",
-          "font-family": "Source Sans 3",
-          "font-size": 11,
-          color: "#1e1d1a",
-          "text-valign": "center",
-          "text-halign": "center",
-          width: 48,
-          height: 48,
-          "background-color": palette.nodeColor || "#2f6f7e",
-          "border-width": 2,
-          "border-color": "#fff9f3"
-        }
-      },
-      {
-        selector: "node[isFocus]",
-        style: {
-          width: 60,
-          height: 60,
-          "background-color": "#bc4f2a"
-        }
-      },
-      {
-        selector: "node[isQ1Publisher]",
-        style: {
-          "background-color": "#bc4f2a"
-        }
-      },
-      {
-        selector: "node[isInfluencedAuthor]",
-        style: {
-          "background-color": "#1f7a68"
-        }
-      },
-      {
-        selector: "edge",
-        style: {
-          width: "mapData(weight, 1, 3, 2, 7)",
-          label: "data(weight)",
-          "font-size": 10,
-          color: "#5b584f",
-          "curve-style": "bezier",
-          "line-color": palette.edgeColor || "rgba(30, 29, 26, 0.25)",
-          "target-arrow-color": palette.edgeColor || "rgba(30, 29, 26, 0.25)",
-          "target-arrow-shape": "none"
-        }
-      }
-    ]
-  });
+function setView(id) {
+  document.querySelectorAll(".view").forEach(v => v.classList.remove("is-active"));
+  const el = document.getElementById(id);
+  if (el) el.classList.add("is-active");
 }
 
-async function loadAuthors() {
-  const authors = await fetchJson("/api/authors");
-  authorSelect.innerHTML = authors
-    .map((author) => `<option value="${author.NodeID}">${author.FullName} - ${author.institutionName}</option>`)
-    .join("");
+function showLogin() {
+  setView("loginView");
+}
 
-  authorSelect.addEventListener("change", () => {
-    loadCoauthors(authorSelect.value);
-  });
+function showSignup() {
+  setView("signupView");
+}
 
-  if (authors.length > 0) {
-    await loadCoauthors(authors[0].NodeID);
+function showDashboard() {
+  const user = JSON.parse(localStorage.getItem("user"));
+  const welcome = document.getElementById("welcomeText");
+
+  if (welcome && user) {
+    welcome.textContent = "Welcome, " + user.email;
+  }
+
+  setView("dashboardView");
+}
+
+function login() {
+  const email = document.getElementById("email")?.value;
+  const password = document.getElementById("password")?.value;
+  const msg = document.getElementById("loginMsg");
+
+  const user = JSON.parse(localStorage.getItem("user"));
+
+  if (!email || !password) {
+    if (msg) msg.textContent = "Please fill all fields";
+    return;
+  }
+
+  if (!user) {
+    if (msg) msg.textContent = "No account found. Please signup.";
+    return;
+  }
+
+  if (user.email === email && user.password === password) {
+    if (msg) msg.textContent = "";
+    showDashboard();
+  } else {
+    if (msg) msg.textContent = "Invalid email or password";
   }
 }
 
-async function loadCoauthors(authorId) {
-  const result = await fetchJson(`/api/query/coauthors?authorId=${authorId}`);
-  coauthorDefinition.textContent = result.definition;
-  coauthorGraph?.destroy();
-  coauthorGraph = createGraph("coauthor-graph", result.nodes, result.edges);
+function signup() {
+  const email = document.getElementById("newEmail")?.value;
+  const password = document.getElementById("newPassword")?.value;
+  const confirm = document.getElementById("confirmPassword")?.value;
+  const msg = document.getElementById("signupMsg");
+
+  if (!email || !password || !confirm) {
+    if (msg) msg.textContent = "All fields are required";
+    return;
+  }
+
+  if (password !== confirm) {
+    if (msg) msg.textContent = "Passwords do not match";
+    return;
+  }
+
+  localStorage.setItem("user", JSON.stringify({ email, password }));
+
+  if (msg) msg.textContent = "Signup successful";
+
+  setTimeout(showLogin, 800);
 }
 
-async function loadCollections() {
-  const collections = await fetchJson("/api/collections");
-  venueList.innerHTML = collections.venues.map((venue) => `
-    <article class="venue-card">
-      <span>${venue.venueKind}${venue.quartile ? ` / ${venue.quartile}` : ""}</span>
-      <strong>${venue.name}</strong>
-      <small>${venue.publicationCount} publications / impact ${venue.impactScore}</small>
-    </article>
-  `).join("");
-
-  collectionsBody.innerHTML = collections.publications.map((publication) => `
-    <tr>
-      <td>${publication.title}</td>
-      <td>${publication.publicationYear}</td>
-      <td>${publication.authors}</td>
-      <td>${publication.venueName}</td>
-      <td>${publication.doi}</td>
-    </tr>
-  `).join("");
+function logout() {
+  localStorage.removeItem("user");
+  showLogin();
 }
 
-async function loadImpact() {
-  const authors = await fetchJson("/api/query/h-index?minimum=5");
-  impactDefinition.textContent = "Impact score is based on citation performance across an author's publications.";
-
-  impactBody.innerHTML = authors.map((author) => `
-    <tr>
-      <td>${author.authorName}</td>
-      <td>${author.hIndex}</td>
-      <td>${author.publicationVenues.join(", ")}</td>
-      <td>${author.publications.slice(0, 3).map((publication) => `${publication.title} (${publication.citationCount})`).join("<br />")}</td>
-    </tr>
-  `).join("");
-}
-
-async function loadQ1Influence() {
-  const result = await fetchJson("/api/query/q1-influence");
-  q1Definition.textContent = result.definition;
-  q1AuthorsElement.innerHTML = result.qualifyingAuthors.map((author) => `
-    <div class="pill">
-      <strong>${author.authorName}</strong>
-      <span>Linked to: ${author.linkedToQ1Authors.join(", ")}</span>
-    </div>
-  `).join("");
-
-  q1Graph?.destroy();
-  q1Graph = createGraph("q1-graph", result.nodes, result.edges, { nodeColor: "#4a6670", edgeColor: "rgba(74, 102, 112, 0.35)" });
-}
-
-async function bootstrap() {
-  showPage();
-  const summary = await fetchJson("/api/summary");
-  renderSummary(summary);
-  await Promise.all([loadAuthors(), loadCollections(), loadImpact(), loadQ1Influence()]);
-  showPage();
+const savedUser = localStorage.getItem("user");
+if (savedUser) {
+  showDashboard();
 }
 
 window.addEventListener("hashchange", showPage);
-
-bootstrap().catch((error) => {
-  console.error(error);
-  document.body.innerHTML = "<main class='page'><section class='panel'><h2>Error</h2><p>Failed to load system data.</p></section></main>";
-});
+showPage();
