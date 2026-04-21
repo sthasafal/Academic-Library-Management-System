@@ -41,8 +41,7 @@ npm test
 - `database/`: SQLite schema, connection, initialization, and seed helpers
 - `frontend/`: static frontend and visualizations
 - `tests/`: automated graph query tests
-- `docs/er-diagram.mmd`: ER diagram source
-- `docs/system-design.md`: system design and architecture notes
+
 
 ## Analytics
 
