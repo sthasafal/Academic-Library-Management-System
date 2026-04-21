@@ -1,9 +1,5 @@
 const authorSelect = document.querySelector("#author-select");
 const coauthorDefinition = document.querySelector("#coauthor-definition");
-const authorProfile = document.querySelector("#author-profile");
-const researcherStats = document.querySelector("#researcher-stats");
-const coauthorListBody = document.querySelector("#coauthor-list-body");
-const authorPublicationsBody = document.querySelector("#author-publications-body");
 const impactDefinition = document.querySelector("#impact-definition");
 const impactBody = document.querySelector("#impact-body");
 const q1Definition = document.querySelector("#q1-definition");
@@ -36,27 +32,6 @@ function buildElements(nodes, edges) {
     ...nodes.map((node) => ({ data: node })),
     ...edges.map((edge) => ({ data: edge }))
   ];
-}
-
-function escapeHtml(value) {
-  return String(value ?? "")
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
-}
-
-function pluralize(count, singular, plural = `${singular}s`) {
-  return `${count} ${count === 1 ? singular : plural}`;
-}
-
-function formatNameList(value) {
-  if (!value) {
-    return "No listed co-authors";
-  }
-
-  return String(value).split(",").join(", ");
 }
 
 function renderSummary(summary) {
@@ -125,7 +100,7 @@ function createGraph(containerId, nodes, edges, palette = {}) {
         }
       },
       {
-        selector: "node[?isFocus]",
+        selector: "node[isFocus]",
         style: {
           width: 60,
           height: 60,
@@ -133,13 +108,13 @@ function createGraph(containerId, nodes, edges, palette = {}) {
         }
       },
       {
-        selector: "node[?isQ1Publisher]",
+        selector: "node[isQ1Publisher]",
         style: {
           "background-color": "#bc4f2a"
         }
       },
       {
-        selector: "node[?isInfluencedAuthor]",
+        selector: "node[isInfluencedAuthor]",
         style: {
           "background-color": "#1f7a68"
         }
@@ -163,7 +138,9 @@ function createGraph(containerId, nodes, edges, palette = {}) {
 
 async function loadAuthors() {
   const authors = await fetchJson("/api/authors");
-  renderAuthorOptions(authors);
+  authorSelect.innerHTML = authors
+    .map((author) => `<option value="${author.NodeID}">${author.FullName} - ${author.institutionName}</option>`)
+    .join("");
 
   authorSelect.addEventListener("change", () => {
     loadCoauthors(authorSelect.value);
@@ -174,111 +151,11 @@ async function loadAuthors() {
   }
 }
 
-function renderAuthorOptions(authors) {
-  if (authors.length === 0) {
-    authorSelect.innerHTML = "<option>No researchers found</option>";
-    authorSelect.disabled = true;
-    return;
-  }
-
-  const currentValue = authorSelect.value;
-  authorSelect.innerHTML = authors
-    .map((author) => `<option value="${author.NodeID}">${escapeHtml(author.FullName)} - ${escapeHtml(author.institutionName)}</option>`)
-    .join("");
-  authorSelect.disabled = false;
-
-  if (authors.some((author) => String(author.NodeID) === currentValue)) {
-    authorSelect.value = currentValue;
-  }
-}
-
 async function loadCoauthors(authorId) {
   const result = await fetchJson(`/api/query/coauthors?authorId=${authorId}`);
   coauthorDefinition.textContent = result.definition;
-  renderResearcherDetails(result);
   coauthorGraph?.destroy();
   coauthorGraph = createGraph("coauthor-graph", result.nodes, result.edges);
-}
-
-function renderResearcherDetails(result) {
-  const author = result.author;
-  const summary = result.summary;
-  const strongest = summary.strongestCollaboration
-    ? `${escapeHtml(summary.strongestCollaboration.authorName)} (${pluralize(summary.strongestCollaboration.sharedPublications, "shared publication")})`
-    : "No co-authors yet";
-
-  authorProfile.innerHTML = `
-    <p class="eyebrow">Selected Author</p>
-    <h3>${escapeHtml(author.FullName)}</h3>
-    <dl class="profile-list">
-      <div>
-        <dt>Research area</dt>
-        <dd>${escapeHtml(author.ResearchArea)}</dd>
-      </div>
-      <div>
-        <dt>Institution</dt>
-        <dd>${escapeHtml(author.institutionName)} (${escapeHtml(author.institutionCountry)})</dd>
-      </div>
-      <div>
-        <dt>Email</dt>
-        <dd>${escapeHtml(author.Email)}</dd>
-      </div>
-    </dl>
-  `;
-
-  researcherStats.innerHTML = `
-    <div class="metric-block">
-      <span>Direct co-authors</span>
-      <strong>${summary.directCoauthors}</strong>
-    </div>
-    <div class="metric-block">
-      <span>Publications</span>
-      <strong>${summary.publicationCount}</strong>
-    </div>
-    <div class="metric-block">
-      <span>Shared works</span>
-      <strong>${summary.sharedPublications}</strong>
-    </div>
-    <div class="metric-block wide">
-      <span>Strongest collaboration</span>
-      <strong>${strongest}</strong>
-    </div>
-  `;
-
-  coauthorListBody.innerHTML = result.collaborators.length === 0
-    ? "<tr><td colspan='4'>No co-authors found for this researcher.</td></tr>"
-    : result.collaborators.map((collaborator) => {
-      const recentSharedWork = collaborator.sharedPublicationsList
-        .slice(0, 2)
-        .map((publication) => `${escapeHtml(publication.title)} (${publication.publicationYear})`)
-        .join("<br />");
-
-      return `
-        <tr>
-          <td>
-            <strong>${escapeHtml(collaborator.authorName)}</strong>
-            <span class="table-note">${escapeHtml(collaborator.researchArea)}</span>
-          </td>
-          <td>${escapeHtml(collaborator.institutionName)}</td>
-          <td>${pluralize(collaborator.sharedPublications, "publication")}</td>
-          <td>${recentSharedWork || "No shared publication listed"}</td>
-        </tr>
-      `;
-    }).join("");
-
-  authorPublicationsBody.innerHTML = result.publications.length === 0
-    ? "<tr><td colspan='4'>No publications found for this researcher.</td></tr>"
-    : result.publications.map((publication) => `
-      <tr>
-        <td>
-          <strong>${escapeHtml(publication.title)}</strong>
-          <span class="table-note">With ${escapeHtml(formatNameList(publication.coauthors))}</span>
-        </td>
-        <td>${publication.publicationYear}</td>
-        <td>${escapeHtml(publication.venueName)}${publication.quartile ? ` / ${escapeHtml(publication.quartile)}` : ""}</td>
-        <td>${publication.citationCount}</td>
-      </tr>
-    `).join("");
 }
 
 async function loadCollections() {

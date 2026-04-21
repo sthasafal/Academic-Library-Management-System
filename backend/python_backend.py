@@ -252,8 +252,7 @@ def ensure_database(force: bool = False) -> None:
 
 
 def row_to_graph_node(row: sqlite3.Row, **extra: object) -> dict:
-    active_extra = {key: value for key, value in extra.items() if value is not False and value is not None}
-    return {"id": row["NodeID"], "label": row["DisplayLabel"], "type": row["NodeType"], **active_extra}
+    return {"id": row["NodeID"], "label": row["DisplayLabel"], "type": row["NodeType"], **extra}
 
 
 def row_to_graph_edge(row: sqlite3.Row) -> dict:
@@ -508,22 +507,7 @@ def get_coauthor_network(author_id: object) -> dict | None:
     try:
         normalized_author_id = int(author_id)
         author = connection.execute(
-            """
-            SELECT
-              a.NodeID,
-              a.FullName,
-              a.ResearchArea,
-              a.Email,
-              i.Name AS institutionName,
-              i.Country AS institutionCountry
-            FROM Authors a
-            JOIN Edges affiliation
-              ON affiliation.SourceNodeID = a.NodeID
-             AND affiliation.EdgeType = 'AFFILIATED_WITH'
-            JOIN Institutions i
-              ON i.NodeID = affiliation.TargetNodeID
-            WHERE a.NodeID = ?
-            """,
+            "SELECT NodeID, FullName, ResearchArea FROM Authors WHERE NodeID = ?",
             (normalized_author_id,),
         ).fetchone()
 
@@ -569,125 +553,10 @@ def get_coauthor_network(author_id: object) -> dict | None:
             (*params, *params),
         ).fetchall()
 
-        collaborator_rows = connection.execute(
-            """
-            SELECT
-              collaborator.NodeID AS authorId,
-              collaborator.FullName AS authorName,
-              collaborator.ResearchArea AS researchArea,
-              institution.Name AS institutionName,
-              coauthor.Weight AS sharedPublications,
-              coauthor.EdgeYear AS latestYear
-            FROM Edges coauthor
-            JOIN Authors collaborator
-              ON collaborator.NodeID = CASE
-                WHEN coauthor.SourceNodeID = ? THEN coauthor.TargetNodeID
-                ELSE coauthor.SourceNodeID
-              END
-            JOIN Edges affiliation
-              ON affiliation.SourceNodeID = collaborator.NodeID
-             AND affiliation.EdgeType = 'AFFILIATED_WITH'
-            JOIN Institutions institution
-              ON institution.NodeID = affiliation.TargetNodeID
-            WHERE coauthor.EdgeType = 'CO_AUTHOR'
-              AND (coauthor.SourceNodeID = ? OR coauthor.TargetNodeID = ?)
-            ORDER BY coauthor.Weight DESC, collaborator.FullName
-            """,
-            (normalized_author_id, normalized_author_id, normalized_author_id),
-        ).fetchall()
-
-        shared_publication_rows = connection.execute(
-            """
-            SELECT
-              other_authored.SourceNodeID AS collaboratorId,
-              p.Title AS title,
-              p.PublicationYear AS publicationYear
-            FROM Edges selected_authored
-            JOIN Edges other_authored
-              ON other_authored.TargetNodeID = selected_authored.TargetNodeID
-             AND other_authored.EdgeType = 'AUTHORED'
-             AND other_authored.SourceNodeID != ?
-            JOIN Publications p
-              ON p.NodeID = selected_authored.TargetNodeID
-            WHERE selected_authored.EdgeType = 'AUTHORED'
-              AND selected_authored.SourceNodeID = ?
-            ORDER BY p.PublicationYear DESC, p.Title
-            """,
-            (normalized_author_id, normalized_author_id),
-        ).fetchall()
-
-        shared_publications_by_author: dict[int, list[dict]] = {}
-        for row in shared_publication_rows:
-            shared_publications_by_author.setdefault(row["collaboratorId"], []).append(
-                {"title": row["title"], "publicationYear": row["publicationYear"]}
-            )
-
-        collaborators = []
-        for row in collaborator_rows:
-            collaborator = dict(row)
-            collaborator["sharedPublicationsList"] = shared_publications_by_author.get(row["authorId"], [])
-            collaborators.append(collaborator)
-
-        publication_rows = connection.execute(
-            """
-            SELECT
-              p.NodeID AS publicationId,
-              p.Title AS title,
-              p.PublicationYear AS publicationYear,
-              p.DOI AS doi,
-              v.Name AS venueName,
-              v.Quartile AS quartile,
-              COUNT(DISTINCT citation.EdgeID) AS citationCount,
-              GROUP_CONCAT(DISTINCT other_author.FullName) AS coauthors
-            FROM Edges authored
-            JOIN Publications p
-              ON p.NodeID = authored.TargetNodeID
-            JOIN Edges published
-              ON published.SourceNodeID = p.NodeID
-             AND published.EdgeType = 'PUBLISHED_IN'
-            JOIN Venues v
-              ON v.NodeID = published.TargetNodeID
-            LEFT JOIN Edges citation
-              ON citation.TargetNodeID = p.NodeID
-             AND citation.EdgeType = 'CITES'
-            LEFT JOIN Edges other_authored
-              ON other_authored.TargetNodeID = p.NodeID
-             AND other_authored.EdgeType = 'AUTHORED'
-             AND other_authored.SourceNodeID != ?
-            LEFT JOIN Authors other_author
-              ON other_author.NodeID = other_authored.SourceNodeID
-            WHERE authored.EdgeType = 'AUTHORED'
-              AND authored.SourceNodeID = ?
-            GROUP BY p.NodeID, p.Title, p.PublicationYear, p.DOI, v.Name, v.Quartile
-            ORDER BY p.PublicationYear DESC, p.Title
-            """,
-            (normalized_author_id, normalized_author_id),
-        ).fetchall()
-
-        publications = [dict(row) for row in publication_rows]
-        total_shared_publications = int(sum(float(row["sharedPublications"] or 0) for row in collaborators))
-        strongest_collaborator = collaborators[0] if collaborators else None
-
         return {
             "author": dict(author),
             "nodes": [row_to_graph_node(row, isFocus=row["NodeID"] == normalized_author_id) for row in node_rows],
             "edges": [row_to_graph_edge(row) for row in edge_rows],
-            "summary": {
-                "directCoauthors": len(collaborators),
-                "publicationCount": len(publications),
-                "sharedPublications": total_shared_publications,
-                "institutionName": author["institutionName"],
-                "strongestCollaboration": (
-                    {
-                        "authorName": strongest_collaborator["authorName"],
-                        "sharedPublications": strongest_collaborator["sharedPublications"],
-                    }
-                    if strongest_collaborator
-                    else None
-                ),
-            },
-            "collaborators": collaborators,
-            "publications": publications,
             "definition": "One-hop co-author network centered on the selected author. Edge weight equals the number of shared publications.",
         }
     finally:
