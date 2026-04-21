@@ -10,6 +10,34 @@
     <link rel="stylesheet" href="/styles.css" />
   </head>
   <body>
+    <!-- LOGIN -->
+<div id="loginView">
+  <div class="panel" style="max-width:400px;margin:100px auto;">
+    <h2>Login</h2>
+    <input id="email" placeholder="Email">
+    <input id="password" type="password" placeholder="Password">
+    <p id="loginMsg" class="definition"></p>
+    <button onclick="login()">Login</button>
+    <p class="definition">
+      Don’t have an account? <a onclick="showSignup()">Signup</a>
+    </p>
+  </div>
+</div>
+
+<!-- SIGNUP -->
+<div id="signupView" style="display:none;">
+  <div class="panel" style="max-width:400px;margin:100px auto;">
+    <h2>Signup</h2>
+    <input id="newEmail" placeholder="Email">
+    <input id="newPassword" type="password" placeholder="Password">
+    <input id="confirmPassword" type="password" placeholder="Confirm Password">
+    <p id="signupMsg" class="definition"></p>
+    <button onclick="signup()">Signup</button>
+    <p class="definition">
+      Already have an account? <a onclick="showLogin()">Login</a>
+    </p>
+  </div>
+</div>
     <header class="topbar">
       <div>
         <p class="brand-kicker">Academic Library</p>
@@ -160,5 +188,87 @@
 
     <script src="https://unpkg.com/cytoscape@3.30.4/dist/cytoscape.min.js"></script>
     <script type="module" src="/app.js"></script>
+    <script>
+function hideMain() {
+  document.querySelector("header").style.display = "none";
+  document.querySelector("main").style.display = "none";
+}
+
+function showMain() {
+  document.querySelector("header").style.display = "block";
+  document.querySelector("main").style.display = "block";
+}
+
+function showLogin() {
+  document.getElementById("loginView").style.display = "block";
+  document.getElementById("signupView").style.display = "none";
+  hideMain();
+}
+
+function showSignup() {
+  document.getElementById("loginView").style.display = "none";
+  document.getElementById("signupView").style.display = "block";
+  hideMain();
+}
+
+function showDashboard() {
+  document.getElementById("loginView").style.display = "none";
+  document.getElementById("signupView").style.display = "none";
+  showMain();
+}
+
+function login() {
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+  const msg = document.getElementById("loginMsg");
+
+  const user = JSON.parse(localStorage.getItem("user"));
+
+  if (!email || !password) {
+    msg.textContent = "Please fill all fields";
+    return;
+  }
+
+  if (!user) {
+    msg.textContent = "No account found. Please signup.";
+    return;
+  }
+
+  if (user.email === email && user.password === password) {
+    msg.textContent = "";
+    showDashboard();
+  } else {
+    msg.textContent = "Invalid credentials";
+  }
+}
+
+function signup() {
+  const email = document.getElementById("newEmail").value;
+  const password = document.getElementById("newPassword").value;
+  const confirm = document.getElementById("confirmPassword").value;
+  const msg = document.getElementById("signupMsg");
+
+  if (!email || !password || !confirm) {
+    msg.textContent = "All fields are required";
+    return;
+  }
+
+  if (password !== confirm) {
+    msg.textContent = "Passwords do not match";
+    return;
+  }
+
+  localStorage.setItem("user", JSON.stringify({ email, password }));
+
+  msg.textContent = "Signup successful";
+  setTimeout(showLogin, 800);
+}
+
+if (localStorage.getItem("user")) {
+  showDashboard();
+} else {
+  showLogin();
+}
+</script>
   </body>
 </html>
