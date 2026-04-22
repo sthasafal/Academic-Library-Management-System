@@ -134,73 +134,12 @@
           </div>
           <p class="section-copy">View author collaboration paths across the library network.</p>
         </div>
-
-        <div class="researcher-toolbar">
-          <div class="controls">
-            <label for="author-select">Select author</label>
-            <select id="author-select"></select>
-          </div>
+        <div class="controls">
+          <label for="author-select">Select author</label>
+          <select id="author-select"></select>
         </div>
-
         <p id="coauthor-definition" class="definition"></p>
-
-        <div class="researcher-grid">
-          <aside class="researcher-profile" aria-label="Selected author profile">
-            <div id="author-profile"></div>
-            <div id="researcher-stats" class="metric-strip"></div>
-          </aside>
-
-          <div class="graph-panel">
-            <div class="graph-legend" aria-label="Graph legend">
-              <span><i class="legend-dot focus-dot"></i>Selected author</span>
-              <span><i class="legend-dot coauthor-dot"></i>Co-author</span>
-              <span><i class="legend-line"></i>Shared publications</span>
-            </div>
-            <div id="coauthor-graph" class="graph-surface"></div>
-          </div>
-        </div>
-
-        <div class="researcher-detail-grid">
-          <section>
-            <div class="subsection-head">
-              <p class="eyebrow">Collaborators</p>
-              <h3>Co-author list</h3>
-            </div>
-            <div class="table-wrap">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Co-author</th>
-                    <th>Institution</th>
-                    <th>Shared</th>
-                    <th>Recent shared work</th>
-                  </tr>
-                </thead>
-                <tbody id="coauthor-list-body"></tbody>
-              </table>
-            </div>
-          </section>
-
-          <section>
-            <div class="subsection-head">
-              <p class="eyebrow">Publications</p>
-              <h3>Selected author work</h3>
-            </div>
-            <div class="table-wrap">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Publication</th>
-                    <th>Year</th>
-                    <th>Venue</th>
-                    <th>Citations</th>
-                  </tr>
-                </thead>
-                <tbody id="author-publications-body"></tbody>
-              </table>
-            </div>
-          </section>
-        </div>
+        <div id="coauthor-graph" class="graph-surface"></div>
       </section>
 
       <section id="collections" class="view panel" data-page="collections">
@@ -271,5 +210,87 @@
 
     <script src="https://unpkg.com/cytoscape@3.30.4/dist/cytoscape.min.js"></script>
     <script type="module" src="/app.js"></script>
+    <script>
+function hideMain() {
+  document.querySelector("header").style.display = "none";
+  document.querySelector("main").style.display = "none";
+}
+
+function showMain() {
+  document.querySelector("header").style.display = "block";
+  document.querySelector("main").style.display = "block";
+}
+
+function showLogin() {
+  document.getElementById("loginView").style.display = "block";
+  document.getElementById("signupView").style.display = "none";
+  hideMain();
+}
+
+function showSignup() {
+  document.getElementById("loginView").style.display = "none";
+  document.getElementById("signupView").style.display = "block";
+  hideMain();
+}
+
+function showDashboard() {
+  document.getElementById("loginView").style.display = "none";
+  document.getElementById("signupView").style.display = "none";
+  showMain();
+}
+
+function login() {
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+  const msg = document.getElementById("loginMsg");
+
+  const user = JSON.parse(localStorage.getItem("user"));
+
+  if (!email || !password) {
+    msg.textContent = "Please fill all fields";
+    return;
+  }
+
+  if (!user) {
+    msg.textContent = "No account found. Please signup.";
+    return;
+  }
+
+  if (user.email === email && user.password === password) {
+    msg.textContent = "";
+    showDashboard();
+  } else {
+    msg.textContent = "Invalid credentials";
+  }
+}
+
+function signup() {
+  const email = document.getElementById("newEmail").value;
+  const password = document.getElementById("newPassword").value;
+  const confirm = document.getElementById("confirmPassword").value;
+  const msg = document.getElementById("signupMsg");
+
+  if (!email || !password || !confirm) {
+    msg.textContent = "All fields are required";
+    return;
+  }
+
+  if (password !== confirm) {
+    msg.textContent = "Passwords do not match";
+    return;
+  }
+
+  localStorage.setItem("user", JSON.stringify({ email, password }));
+
+  msg.textContent = "Signup successful";
+  setTimeout(showLogin, 800);
+}
+
+if (localStorage.getItem("user")) {
+  showDashboard();
+} else {
+  showLogin();
+}
+</script>
   </body>
 </html>
