@@ -19,6 +19,13 @@ test("co-author query returns focused one-hop network", () => {
   const labels = network.nodes.map((node) => node.label).sort();
 
   assert.equal(network.author.FullName, "Alice Carter");
+  assert.equal(network.nodes.filter((node) => node.isFocus).length, 1);
+  assert.equal(network.nodes.find((node) => node.isFocus).label, "Alice Carter");
+  assert.equal(network.summary.directCoauthors, 5);
+  assert.equal(network.summary.publicationCount, 7);
+  assert.equal(network.summary.strongestCollaboration.authorName, "Chloe Zhang");
+  assert.ok(network.collaborators.some((author) => author.authorName === "Chloe Zhang" && author.sharedPublications === 3));
+  assert.ok(network.publications.some((publication) => publication.title === "Venue Signals for Academic Discovery"));
   assert.deepEqual(labels, ["Alice Carter", "Ben Ortiz", "Chloe Zhang", "Daniel Kim", "Emma Patel", "Farah Nasser"]);
   assert.ok(network.edges.some((edge) => edge.weight >= 2));
 });

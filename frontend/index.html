@@ -134,12 +134,73 @@
           </div>
           <p class="section-copy">View author collaboration paths across the library network.</p>
         </div>
-        <div class="controls">
-          <label for="author-select">Select author</label>
-          <select id="author-select"></select>
+
+        <div class="researcher-toolbar">
+          <div class="controls">
+            <label for="author-select">Select author</label>
+            <select id="author-select"></select>
+          </div>
         </div>
+
         <p id="coauthor-definition" class="definition"></p>
-        <div id="coauthor-graph" class="graph-surface"></div>
+
+        <div class="researcher-grid">
+          <aside class="researcher-profile" aria-label="Selected author profile">
+            <div id="author-profile"></div>
+            <div id="researcher-stats" class="metric-strip"></div>
+          </aside>
+
+          <div class="graph-panel">
+            <div class="graph-legend" aria-label="Graph legend">
+              <span><i class="legend-dot focus-dot"></i>Selected author</span>
+              <span><i class="legend-dot coauthor-dot"></i>Co-author</span>
+              <span><i class="legend-line"></i>Shared publications</span>
+            </div>
+            <div id="coauthor-graph" class="graph-surface"></div>
+          </div>
+        </div>
+
+        <div class="researcher-detail-grid">
+          <section>
+            <div class="subsection-head">
+              <p class="eyebrow">Collaborators</p>
+              <h3>Co-author list</h3>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Co-author</th>
+                    <th>Institution</th>
+                    <th>Shared</th>
+                    <th>Recent shared work</th>
+                  </tr>
+                </thead>
+                <tbody id="coauthor-list-body"></tbody>
+              </table>
+            </div>
+          </section>
+
+          <section>
+            <div class="subsection-head">
+              <p class="eyebrow">Publications</p>
+              <h3>Selected author work</h3>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Publication</th>
+                    <th>Year</th>
+                    <th>Venue</th>
+                    <th>Citations</th>
+                  </tr>
+                </thead>
+                <tbody id="author-publications-body"></tbody>
+              </table>
+            </div>
+          </section>
+        </div>
       </section>
 
       <section id="collections" class="view panel" data-page="collections">
