@@ -611,6 +611,22 @@ searchType.addEventListener("change", () => {
 });
 
 window.addEventListener("hashchange", showPage);
+
+searchInput.addEventListener("keydown", (event) => {
+  if (event.key === "Enter") {
+    runSearch();
+  }
+});
+
+searchType.addEventListener("change", () => {
+  institutionAuthorsBody.innerHTML = `
+    <tr>
+      <td colspan="4">Select an institution to view its authors.</td>
+    </tr>
+  `;
+});
+
+window.addEventListener("hashchange", showPage);
 for (const tab of authTabs) {
   tab.addEventListener("click", () => showAuthForm(tab.dataset.authTab));
 }
