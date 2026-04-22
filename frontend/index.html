@@ -10,45 +10,66 @@
     <link rel="stylesheet" href="/styles.css" />
   </head>
   <body>
-    <!-- LOGIN -->
-<div id="loginView">
-  <div class="panel" style="max-width:400px;margin:100px auto;">
-    <h2>Login</h2>
-    <input id="email" placeholder="Email">
-    <input id="password" type="password" placeholder="Password">
-    <p id="loginMsg" class="definition"></p>
-    <button onclick="login()">Login</button>
-    <p class="definition">
-      Don’t have an account? <a onclick="showSignup()">Signup</a>
-    </p>
-  </div>
-</div>
+    <main id="auth-screen" class="auth-screen" aria-labelledby="auth-title">
+      <section class="auth-panel">
+        <div class="auth-intro">
+          <p class="brand-kicker">Academic Library</p>
+          <h1 id="auth-title">Library Management System</h1>
+          <p>Sign in to manage researchers, publication records, and academic network insights.</p>
+        </div>
 
-<!-- SIGNUP -->
-<div id="signupView" style="display:none;">
-  <div class="panel" style="max-width:400px;margin:100px auto;">
-    <h2>Signup</h2>
-    <input id="newEmail" placeholder="Email">
-    <input id="newPassword" type="password" placeholder="Password">
-    <input id="confirmPassword" type="password" placeholder="Confirm Password">
-    <p id="signupMsg" class="definition"></p>
-    <button onclick="signup()">Signup</button>
-    <p class="definition">
-      Already have an account? <a onclick="showLogin()">Login</a>
-    </p>
-  </div>
-</div>
+        <div class="auth-box">
+          <div class="auth-tabs" role="tablist" aria-label="Authentication options">
+            <button class="auth-tab is-active" type="button" data-auth-tab="login">Login</button>
+            <button class="auth-tab" type="button" data-auth-tab="signup">Sign up</button>
+          </div>
+
+          <form id="login-form" class="auth-form is-active" data-auth-form="login">
+            <label for="login-email">Email</label>
+            <input id="login-email" type="email" autocomplete="email" required />
+
+            <label for="login-password">Password</label>
+            <input id="login-password" type="password" autocomplete="current-password" required />
+
+            <button class="primary-button" type="submit">Login</button>
+          </form>
+
+          <form id="signup-form" class="auth-form" data-auth-form="signup">
+            <label for="signup-name">Full name</label>
+            <input id="signup-name" type="text" autocomplete="name" required />
+
+            <label for="signup-email">Email</label>
+            <input id="signup-email" type="email" autocomplete="email" required />
+
+            <label for="signup-password">Password</label>
+            <input id="signup-password" type="password" autocomplete="new-password" minlength="6" required />
+
+            <button class="primary-button" type="submit">Create account</button>
+          </form>
+
+          <p id="auth-message" class="auth-message" role="status"></p>
+        </div>
+      </section>
+    </main>
+
+    <div id="app-shell" class="app-shell" hidden>
     <header class="topbar">
       <div>
         <p class="brand-kicker">Academic Library</p>
         <h1 class="brand-title">Library Management System</h1>
       </div>
-      <nav class="topnav" aria-label="Primary">
-        <a href="#dashboard" data-page-link="dashboard">Dashboard</a>
-        <a href="#researchers" data-page-link="researchers">Researchers</a>
-        <a href="#collections" data-page-link="collections">Collections</a>
-        <a href="#analytics" data-page-link="analytics">Analytics</a>
-      </nav>
+      <div class="topbar-actions">
+        <nav class="topnav" aria-label="Primary">
+          <a href="#dashboard" data-page-link="dashboard">Dashboard</a>
+          <a href="#researchers" data-page-link="researchers">Researchers</a>
+          <a href="#collections" data-page-link="collections">Collections</a>
+          <a href="#analytics" data-page-link="analytics">Analytics</a>
+        </nav>
+        <div class="session-menu">
+          <span id="session-user"></span>
+          <button id="logout-button" class="secondary-button" type="button">Logout</button>
+        </div>
+      </div>
     </header>
 
     <main class="page">
@@ -56,14 +77,14 @@
         <section class="hero panel">
           <div>
             <p class="eyebrow">Dashboard Overview</p>
-            <h2 class="hero-title">Start with the library network at a glance.</h2>
+            <h2 class="hero-title">Manage academic collections and research connections in one place.</h2>
             <p class="intro">
-              Review the current record totals, then open the tab that matches the task you want to complete.
+              This system stores authors, institutions, publications, and venues as a connected academic library network.
             </p>
           </div>
           <div class="hero-note">
             <strong>Dashboard role</strong>
-            <p>Use this page as a starting point. Detailed researcher graphs, publication records, and impact analysis stay in their own tabs.</p>
+            <p>Library records are modeled as graph data so collaboration, citation, and journal influence can be explored directly.</p>
           </div>
         </section>
 
@@ -185,6 +206,7 @@
         </section>
       </section>
     </main>
+    </div>
 
     <script src="https://unpkg.com/cytoscape@3.30.4/dist/cytoscape.min.js"></script>
     <script type="module" src="/app.js"></script>

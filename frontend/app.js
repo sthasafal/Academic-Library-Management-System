@@ -1,3 +1,12 @@
+const authScreen = document.querySelector("#auth-screen");
+const appShell = document.querySelector("#app-shell");
+const authTabs = [...document.querySelectorAll("[data-auth-tab]")];
+const authForms = [...document.querySelectorAll("[data-auth-form]")];
+const loginForm = document.querySelector("#login-form");
+const signupForm = document.querySelector("#signup-form");
+const authMessage = document.querySelector("#auth-message");
+const sessionUser = document.querySelector("#session-user");
+const logoutButton = document.querySelector("#logout-button");
 const authorSelect = document.querySelector("#author-select");
 const coauthorDefinition = document.querySelector("#coauthor-definition");
 const impactDefinition = document.querySelector("#impact-definition");
@@ -15,7 +24,10 @@ const pageLinks = [...document.querySelectorAll("[data-page-link]")];
 
 let coauthorGraph;
 let q1Graph;
+let hasLoadedLibraryData = false;
 const defaultPage = "dashboard";
+const usersStorageKey = "academic-library-users";
+const sessionStorageKey = "academic-library-session";
 
 function fetchJson(url) {
   return fetch(url).then((response) => {
@@ -25,6 +37,122 @@ function fetchJson(url) {
 
     return response.json();
   });
+}
+
+function getStoredUsers() {
+  try {
+    return JSON.parse(localStorage.getItem(usersStorageKey)) || [];
+  } catch {
+    return [];
+  }
+}
+
+function saveStoredUsers(users) {
+  localStorage.setItem(usersStorageKey, JSON.stringify(users));
+}
+
+function getCurrentSession() {
+  try {
+    return JSON.parse(localStorage.getItem(sessionStorageKey));
+  } catch {
+    return null;
+  }
+}
+
+function saveSession(user) {
+  localStorage.setItem(sessionStorageKey, JSON.stringify({ name: user.name, email: user.email }));
+}
+
+function clearAuthMessage() {
+  authMessage.textContent = "";
+  authMessage.classList.remove("is-error");
+}
+
+function showAuthMessage(message, isError = false) {
+  authMessage.textContent = message;
+  authMessage.classList.toggle("is-error", isError);
+}
+
+function showAuthForm(formName) {
+  clearAuthMessage();
+
+  for (const tab of authTabs) {
+    tab.classList.toggle("is-active", tab.dataset.authTab === formName);
+  }
+
+  for (const form of authForms) {
+    form.classList.toggle("is-active", form.dataset.authForm === formName);
+  }
+}
+
+async function showLibraryApp(user) {
+  authScreen.hidden = true;
+  appShell.hidden = false;
+  sessionUser.textContent = user.name;
+
+  try {
+    if (!hasLoadedLibraryData) {
+      await bootstrap();
+      hasLoadedLibraryData = true;
+    } else {
+      showPage();
+    }
+  } catch (error) {
+    handleBootstrapError(error);
+  }
+}
+
+function showAuthScreen() {
+  appShell.hidden = true;
+  authScreen.hidden = false;
+  sessionUser.textContent = "";
+}
+
+async function handleLogin(event) {
+  event.preventDefault();
+  const email = loginForm.elements["login-email"].value.trim().toLowerCase();
+  const password = loginForm.elements["login-password"].value;
+  const user = getStoredUsers().find((storedUser) => storedUser.email === email);
+
+  if (!user || user.password !== password) {
+    showAuthMessage("Email or password does not match.", true);
+    return;
+  }
+
+  saveSession(user);
+  loginForm.reset();
+  await showLibraryApp(user);
+}
+
+async function handleSignup(event) {
+  event.preventDefault();
+  const name = signupForm.elements["signup-name"].value.trim();
+  const email = signupForm.elements["signup-email"].value.trim().toLowerCase();
+  const password = signupForm.elements["signup-password"].value;
+  const users = getStoredUsers();
+
+  if (!name) {
+    showAuthMessage("Enter your full name.", true);
+    return;
+  }
+
+  if (users.some((user) => user.email === email)) {
+    showAuthMessage("An account already exists for that email.", true);
+    return;
+  }
+
+  const user = { name, email, password };
+  users.push(user);
+  saveStoredUsers(users);
+  saveSession(user);
+  signupForm.reset();
+  await showLibraryApp(user);
+}
+
+function logout() {
+  localStorage.removeItem(sessionStorageKey);
+  showAuthForm("login");
+  showAuthScreen();
 }
 
 function buildElements(nodes, edges) {
@@ -216,8 +344,21 @@ async function bootstrap() {
 }
 
 window.addEventListener("hashchange", showPage);
+for (const tab of authTabs) {
+  tab.addEventListener("click", () => showAuthForm(tab.dataset.authTab));
+}
+loginForm.addEventListener("submit", handleLogin);
+signupForm.addEventListener("submit", handleSignup);
+logoutButton.addEventListener("click", logout);
 
-bootstrap().catch((error) => {
+const currentSession = getCurrentSession();
+if (currentSession) {
+  showLibraryApp(currentSession).catch(handleBootstrapError);
+} else {
+  showAuthScreen();
+}
+
+function handleBootstrapError(error) {
   console.error(error);
   document.body.innerHTML = "<main class='page'><section class='panel'><h2>Error</h2><p>Failed to load system data.</p></section></main>";
-});
+}
