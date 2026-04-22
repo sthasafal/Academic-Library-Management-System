@@ -25,6 +25,12 @@ const venuesCount = document.querySelector("#venues-count");
 const relationshipsCount = document.querySelector("#relationships-count");
 const pages = [...document.querySelectorAll("[data-page]")];
 const pageLinks = [...document.querySelectorAll("[data-page-link]")];
+const searchType = document.querySelector("#search-type");
+const searchInput = document.querySelector("#search-input");
+const searchButton = document.querySelector("#search-button");
+const searchResultsHead = document.querySelector("#search-results-head");
+const searchResultsBody = document.querySelector("#search-results-body");
+const institutionAuthorsBody = document.querySelector("#institution-authors-body");
 
 let coauthorGraph;
 let q1Graph;
@@ -430,6 +436,125 @@ async function loadCollections() {
   `).join("");
 }
 
+async function runSearch() {
+  const type = searchType.value;
+  const query = searchInput.value.trim();
+  const results = await fetchJson(`/api/search/${type}?q=${encodeURIComponent(query)}`);
+
+  if (results.length === 0) {
+    searchResultsHead.innerHTML = `<tr><th>No results</th></tr>`;
+    searchResultsBody.innerHTML = `
+      <tr>
+        <td>No matching records found.</td>
+      </tr>
+    `;
+    institutionAuthorsBody.innerHTML = `
+      <tr>
+        <td colspan="4">Select an institution to view its authors.</td>
+      </tr>
+    `;
+    return;
+  }
+
+  institutionAuthorsBody.innerHTML = "";
+
+  if (type === "authors") {
+    searchResultsHead.innerHTML = `
+      <tr>
+        <th>Author Name</th>
+        <th>Research Area</th>
+        <th>Institution</th>
+      </tr>
+    `;
+
+    searchResultsBody.innerHTML = results.map((author) => `
+      <tr>
+        <td>${author.FullName}</td>
+        <td>${author.ResearchArea}</td>
+        <td>${author.institutionName}</td>
+      </tr>
+    `).join("");
+  }
+
+  if (type === "publications") {
+    searchResultsHead.innerHTML = `
+      <tr>
+        <th>Title</th>
+        <th>Year</th>
+        <th>Authors</th>
+        <th>Venue</th>
+        <th>DOI</th>
+      </tr>
+    `;
+
+    searchResultsBody.innerHTML = results.map((publication) => `
+      <tr>
+        <td>${publication.title}</td>
+        <td>${publication.publicationYear}</td>
+        <td>${publication.authors}</td>
+        <td>${publication.venueName}</td>
+        <td>${publication.doi}</td>
+      </tr>
+    `).join("");
+  }
+
+  if (type === "institutions") {
+    searchResultsHead.innerHTML = `
+      <tr>
+        <th>Institution</th>
+        <th>Country</th>
+        <th>Authors</th>
+      </tr>
+    `;
+
+    searchResultsBody.innerHTML = results.map((institution) => `
+      <tr class="institution-row" data-institution-id="${institution.institutionId}" style="cursor:pointer;">
+        <td>${institution.name}</td>
+        <td>${institution.country}</td>
+        <td>${institution.authorCount}</td>
+      </tr>
+    `).join("");
+
+    document.querySelectorAll(".institution-row").forEach((row) => {
+      row.addEventListener("click", async () => {
+        const institutionId = row.dataset.institutionId;
+        const authors = await fetchJson(`/api/institutions/${institutionId}/authors`);
+
+        institutionAuthorsBody.innerHTML = authors.map((author) => `
+          <tr>
+            <td>${author.FullName}</td>
+            <td>${author.ResearchArea}</td>
+            <td>${author.Email}</td>
+            <td>${author.institutionName}</td>
+          </tr>
+        `).join("");
+      });
+    });
+  }
+
+  if (type === "venues") {
+    searchResultsHead.innerHTML = `
+      <tr>
+        <th>Venue Name</th>
+        <th>Type</th>
+        <th>Quartile</th>
+        <th>Impact Score</th>
+        <th>Publication Count</th>
+      </tr>
+    `;
+
+    searchResultsBody.innerHTML = results.map((venue) => `
+      <tr>
+        <td>${venue.name}</td>
+        <td>${venue.venueKind}</td>
+        <td>${venue.quartile ?? "-"}</td>
+        <td>${venue.impactScore}</td>
+        <td>${venue.publicationCount}</td>
+      </tr>
+    `).join("");
+  }
+}
+
 async function loadImpact() {
   const authors = await fetchJson("/api/query/h-index?minimum=5");
   impactDefinition.textContent = "Impact score is based on citation performance across an author's publications.";
@@ -463,8 +588,43 @@ async function bootstrap() {
   const summary = await fetchJson("/api/summary");
   renderSummary(summary);
   await Promise.all([loadAuthors(), loadCollections(), loadImpact(), loadQ1Influence()]);
+  await runSearch();
   showPage();
 }
+
+searchButton.addEventListener("click", () => {
+  runSearch();
+});
+
+searchInput.addEventListener("keydown", (event) => {
+  if (event.key === "Enter") {
+    runSearch();
+  }
+});
+
+searchType.addEventListener("change", () => {
+  institutionAuthorsBody.innerHTML = `
+    <tr>
+      <td colspan="4">Select an institution to view its authors.</td>
+    </tr>
+  `;
+});
+
+window.addEventListener("hashchange", showPage);
+
+searchInput.addEventListener("keydown", (event) => {
+  if (event.key === "Enter") {
+    runSearch();
+  }
+});
+
+searchType.addEventListener("change", () => {
+  institutionAuthorsBody.innerHTML = `
+    <tr>
+      <td colspan="4">Select an institution to view its authors.</td>
+    </tr>
+  `;
+});
 
 window.addEventListener("hashchange", showPage);
 for (const tab of authTabs) {

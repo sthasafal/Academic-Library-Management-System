@@ -211,7 +211,69 @@
           </div>
           <p class="section-copy">Browse publication records and the journals or conferences connected to them.</p>
         </div>
+
+        <section class="panel">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Search</p>
+              <h2>Search Records</h2>
+            </div>
+            <p class="section-copy">Search authors, publications, institutions, and venues.</p>
+          </div>
+
+          <div class="controls">
+            <label for="search-type">Search type</label>
+            <select id="search-type">
+              <option value="authors">Authors</option>
+              <option value="publications">Publications</option>
+              <option value="institutions">Institutions</option>
+              <option value="venues">Venues</option>
+            </select>
+
+            <label for="search-input">Search</label>
+            <input id="search-input" type="text" placeholder="Type to search..." />
+
+            <button id="search-button" type="button">Search</button>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead id="search-results-head"></thead>
+              <tbody id="search-results-body"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Institution Details</p>
+              <h2>Institution Authors</h2>
+            </div>
+            <p class="section-copy">When you select an institution, its authors will appear here.</p>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Author Name</th>
+                  <th>Research Area</th>
+                  <th>Email</th>
+                  <th>Institution</th>
+                </tr>
+              </thead>
+              <tbody id="institution-authors-body">
+                <tr>
+                  <td colspan="4">Select an institution to view its authors.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
         <div id="venue-list" class="venue-list"></div>
+
         <div class="table-wrap">
           <table>
             <thead>

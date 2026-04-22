@@ -545,6 +545,7 @@ select {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0.8rem;
+  margin-top: 1.2rem;
   margin-bottom: 1rem;
 }
 
@@ -663,3 +664,35 @@ th {
     height: 360px;
   }
 }
+
+input,
+button {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 0.65rem 0.85rem;
+  font: inherit;
+}
+
+input {
+  background: white;
+  color: var(--ink);
+}
+
+button {
+  background: var(--accent);
+  color: white;
+  cursor: pointer;
+}
+
+button:hover {
+  background: var(--accent-strong);
+}
+
+.institution-row {
+  cursor: pointer;
+}
+
+.institution-row:hover {
+  background: var(--surface-soft);
+}
+
