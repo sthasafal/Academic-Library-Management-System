@@ -10,17 +10,66 @@
     <link rel="stylesheet" href="/styles.css" />
   </head>
   <body>
+    <main id="auth-screen" class="auth-screen" aria-labelledby="auth-title">
+      <section class="auth-panel">
+        <div class="auth-intro">
+          <p class="brand-kicker">Academic Library</p>
+          <h1 id="auth-title">Library Management System</h1>
+          <p>Sign in to manage researchers, publication records, and academic network insights.</p>
+        </div>
+
+        <div class="auth-box">
+          <div class="auth-tabs" role="tablist" aria-label="Authentication options">
+            <button class="auth-tab is-active" type="button" data-auth-tab="login">Login</button>
+            <button class="auth-tab" type="button" data-auth-tab="signup">Sign up</button>
+          </div>
+
+          <form id="login-form" class="auth-form is-active" data-auth-form="login">
+            <label for="login-email">Email</label>
+            <input id="login-email" type="email" autocomplete="email" required />
+
+            <label for="login-password">Password</label>
+            <input id="login-password" type="password" autocomplete="current-password" required />
+
+            <button class="primary-button" type="submit">Login</button>
+          </form>
+
+          <form id="signup-form" class="auth-form" data-auth-form="signup">
+            <label for="signup-name">Full name</label>
+            <input id="signup-name" type="text" autocomplete="name" required />
+
+            <label for="signup-email">Email</label>
+            <input id="signup-email" type="email" autocomplete="email" required />
+
+            <label for="signup-password">Password</label>
+            <input id="signup-password" type="password" autocomplete="new-password" minlength="6" required />
+
+            <button class="primary-button" type="submit">Create account</button>
+          </form>
+
+          <p id="auth-message" class="auth-message" role="status"></p>
+        </div>
+      </section>
+    </main>
+
+    <div id="app-shell" class="app-shell" hidden>
     <header class="topbar">
       <div>
         <p class="brand-kicker">Academic Library</p>
         <h1 class="brand-title">Library Management System</h1>
       </div>
-      <nav class="topnav" aria-label="Primary">
-        <a href="#dashboard" data-page-link="dashboard">Dashboard</a>
-        <a href="#researchers" data-page-link="researchers">Researchers</a>
-        <a href="#collections" data-page-link="collections">Collections</a>
-        <a href="#analytics" data-page-link="analytics">Analytics</a>
-      </nav>
+      <div class="topbar-actions">
+        <nav class="topnav" aria-label="Primary">
+          <a href="#dashboard" data-page-link="dashboard">Dashboard</a>
+          <a href="#researchers" data-page-link="researchers">Researchers</a>
+          <a href="#collections" data-page-link="collections">Collections</a>
+          <a href="#analytics" data-page-link="analytics">Analytics</a>
+        </nav>
+        <div class="session-menu">
+          <span id="session-user"></span>
+          <button id="logout-button" class="secondary-button" type="button">Logout</button>
+        </div>
+      </div>
     </header>
 
     <main class="page">
@@ -34,7 +83,7 @@
             </p>
           </div>
           <div class="hero-note">
-            <strong>Project focus</strong>
+            <strong>Dashboard role</strong>
             <p>Library records are modeled as graph data so collaboration, citation, and journal influence can be explored directly.</p>
           </div>
         </section>
@@ -57,6 +106,24 @@
             <strong id="relationships-count">0</strong>
           </article>
         </section>
+
+        <section class="dashboard-actions" aria-label="Dashboard shortcuts">
+          <a class="action-card" href="#researchers">
+            <span class="eyebrow">Researchers</span>
+            <strong>Explore co-author connections</strong>
+            <p>Open the network graph and select an author to view collaboration paths.</p>
+          </a>
+          <a class="action-card" href="#collections">
+            <span class="eyebrow">Collections</span>
+            <strong>Browse publication records</strong>
+            <p>Review publications, venues, years, authors, and DOI details.</p>
+          </a>
+          <a class="action-card" href="#analytics">
+            <span class="eyebrow">Analytics</span>
+            <strong>Check impact signals</strong>
+            <p>Use the dedicated analytics tab for author impact and Q1 journal influence.</p>
+          </a>
+        </section>
       </section>
 
       <section id="researchers" class="view panel" data-page="researchers">
@@ -67,12 +134,73 @@
           </div>
           <p class="section-copy">View author collaboration paths across the library network.</p>
         </div>
-        <div class="controls">
-          <label for="author-select">Select author</label>
-          <select id="author-select"></select>
+
+        <div class="researcher-toolbar">
+          <div class="controls">
+            <label for="author-select">Select author</label>
+            <select id="author-select"></select>
+          </div>
         </div>
+
         <p id="coauthor-definition" class="definition"></p>
-        <div id="coauthor-graph" class="graph-surface"></div>
+
+        <div class="researcher-grid">
+          <aside class="researcher-profile" aria-label="Selected author profile">
+            <div id="author-profile"></div>
+            <div id="researcher-stats" class="metric-strip"></div>
+          </aside>
+
+          <div class="graph-panel">
+            <div class="graph-legend" aria-label="Graph legend">
+              <span><i class="legend-dot focus-dot"></i>Selected author</span>
+              <span><i class="legend-dot coauthor-dot"></i>Co-author</span>
+              <span><i class="legend-line"></i>Shared publications</span>
+            </div>
+            <div id="coauthor-graph" class="graph-surface"></div>
+          </div>
+        </div>
+
+        <div class="researcher-detail-grid">
+          <section>
+            <div class="subsection-head">
+              <p class="eyebrow">Collaborators</p>
+              <h3>Co-author list</h3>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Co-author</th>
+                    <th>Institution</th>
+                    <th>Shared</th>
+                    <th>Recent shared work</th>
+                  </tr>
+                </thead>
+                <tbody id="coauthor-list-body"></tbody>
+              </table>
+            </div>
+          </section>
+
+          <section>
+            <div class="subsection-head">
+              <p class="eyebrow">Publications</p>
+              <h3>Selected author work</h3>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Publication</th>
+                    <th>Year</th>
+                    <th>Venue</th>
+                    <th>Citations</th>
+                  </tr>
+                </thead>
+                <tbody id="author-publications-body"></tbody>
+              </table>
+            </div>
+          </section>
+        </div>
       </section>
 
       <section id="collections" class="view panel" data-page="collections">
@@ -83,7 +211,69 @@
           </div>
           <p class="section-copy">Browse publication records and the journals or conferences connected to them.</p>
         </div>
+
+        <section class="panel">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Search</p>
+              <h2>Search Records</h2>
+            </div>
+            <p class="section-copy">Search authors, publications, institutions, and venues.</p>
+          </div>
+
+          <div class="controls">
+            <label for="search-type">Search type</label>
+            <select id="search-type">
+              <option value="authors">Authors</option>
+              <option value="publications">Publications</option>
+              <option value="institutions">Institutions</option>
+              <option value="venues">Venues</option>
+            </select>
+
+            <label for="search-input">Search</label>
+            <input id="search-input" type="text" placeholder="Type to search..." />
+
+            <button id="search-button" type="button">Search</button>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead id="search-results-head"></thead>
+              <tbody id="search-results-body"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Institution Details</p>
+              <h2>Institution Authors</h2>
+            </div>
+            <p class="section-copy">When you select an institution, its authors will appear here.</p>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Author Name</th>
+                  <th>Research Area</th>
+                  <th>Email</th>
+                  <th>Institution</th>
+                </tr>
+              </thead>
+              <tbody id="institution-authors-body">
+                <tr>
+                  <td colspan="4">Select an institution to view its authors.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
         <div id="venue-list" class="venue-list"></div>
+
         <div class="table-wrap">
           <table>
             <thead>
@@ -139,8 +329,91 @@
         </section>
       </section>
     </main>
+    </div>
 
     <script src="https://unpkg.com/cytoscape@3.30.4/dist/cytoscape.min.js"></script>
     <script type="module" src="/app.js"></script>
+    <script>
+function hideMain() {
+  document.querySelector("header").style.display = "none";
+  document.querySelector("main").style.display = "none";
+}
+
+function showMain() {
+  document.querySelector("header").style.display = "block";
+  document.querySelector("main").style.display = "block";
+}
+
+function showLogin() {
+  document.getElementById("loginView").style.display = "block";
+  document.getElementById("signupView").style.display = "none";
+  hideMain();
+}
+
+function showSignup() {
+  document.getElementById("loginView").style.display = "none";
+  document.getElementById("signupView").style.display = "block";
+  hideMain();
+}
+
+function showDashboard() {
+  document.getElementById("loginView").style.display = "none";
+  document.getElementById("signupView").style.display = "none";
+  showMain();
+}
+
+function login() {
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+  const msg = document.getElementById("loginMsg");
+
+  const user = JSON.parse(localStorage.getItem("user"));
+
+  if (!email || !password) {
+    msg.textContent = "Please fill all fields";
+    return;
+  }
+
+  if (!user) {
+    msg.textContent = "No account found. Please signup.";
+    return;
+  }
+
+  if (user.email === email && user.password === password) {
+    msg.textContent = "";
+    showDashboard();
+  } else {
+    msg.textContent = "Invalid credentials";
+  }
+}
+
+function signup() {
+  const email = document.getElementById("newEmail").value;
+  const password = document.getElementById("newPassword").value;
+  const confirm = document.getElementById("confirmPassword").value;
+  const msg = document.getElementById("signupMsg");
+
+  if (!email || !password || !confirm) {
+    msg.textContent = "All fields are required";
+    return;
+  }
+
+  if (password !== confirm) {
+    msg.textContent = "Passwords do not match";
+    return;
+  }
+
+  localStorage.setItem("user", JSON.stringify({ email, password }));
+
+  msg.textContent = "Signup successful";
+  setTimeout(showLogin, 800);
+}
+
+if (localStorage.getItem("user")) {
+  showDashboard();
+} else {
+  showLogin();
+}
+</script>
   </body>
 </html>

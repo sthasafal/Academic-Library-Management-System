@@ -14,6 +14,11 @@ from python_backend import (
     list_collections,
     list_authors,
     list_authors_by_h_index,
+    search_authors,
+    search_publications,
+    search_institutions,
+    search_venues,
+    get_authors_by_institution,
 )
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -58,6 +63,29 @@ def h_index():
 def q1_influence():
     return jsonify(get_q1_influence_network())
 
+@app.get("/api/search/authors")
+def api_search_authors():
+    q = request.args.get("q", "").strip()
+    return jsonify(search_authors(q))
+
+@app.get("/api/search/publications")
+def api_search_publications():
+    q = request.args.get("q", "").strip()
+    return jsonify(search_publications(q))
+
+@app.get("/api/search/institutions")
+def api_search_institutions():
+    q = request.args.get("q", "").strip()
+    return jsonify(search_institutions(q))
+
+@app.get("/api/search/venues")
+def api_search_venues():
+    q = request.args.get("q", "").strip()
+    return jsonify(search_venues(q))
+
+@app.get("/api/institutions/<int:institution_id>/authors")
+def api_institution_authors(institution_id):
+    return jsonify(get_authors_by_institution(institution_id))
 
 @app.get("/")
 def index():

@@ -252,7 +252,8 @@ def ensure_database(force: bool = False) -> None:
 
 
 def row_to_graph_node(row: sqlite3.Row, **extra: object) -> dict:
-    return {"id": row["NodeID"], "label": row["DisplayLabel"], "type": row["NodeType"], **extra}
+    active_extra = {key: value for key, value in extra.items() if value is not False and value is not None}
+    return {"id": row["NodeID"], "label": row["DisplayLabel"], "type": row["NodeType"], **active_extra}
 
 
 def row_to_graph_edge(row: sqlite3.Row) -> dict:
@@ -303,6 +304,145 @@ def list_authors() -> list[dict]:
     finally:
         connection.close()
 
+def search_authors(query: str) -> list[dict]:
+    connection = get_connection()
+    try:
+        rows = connection.execute(
+            """
+            SELECT a.NodeID, a.FullName, a.ResearchArea, i.Name AS institutionName
+            FROM Authors a
+            JOIN Institutions i
+              ON i.NodeID = (
+                SELECT e.TargetNodeID
+                FROM Edges e
+                WHERE e.SourceNodeID = a.NodeID
+                  AND e.EdgeType = 'AFFILIATED_WITH'
+                LIMIT 1
+              )
+            WHERE a.FullName LIKE ?
+            ORDER BY a.FullName
+            """,
+            (f"%{query}%",),
+        ).fetchall()
+        return [dict(row) for row in rows]
+    finally:
+        connection.close()
+
+def search_publications(query: str) -> list[dict]:
+    connection = get_connection()
+    try:
+        rows = connection.execute(
+            """
+            SELECT
+              p.NodeID AS publicationId,
+              p.Title AS title,
+              p.PublicationYear AS publicationYear,
+              p.DOI AS doi,
+              v.Name AS venueName,
+              v.VenueKind AS venueKind,
+              v.Quartile AS quartile,
+              v.ImpactScore AS impactScore,
+              GROUP_CONCAT(a.FullName, ', ') AS authors
+            FROM Publications p
+            JOIN Edges published
+              ON published.SourceNodeID = p.NodeID
+             AND published.EdgeType = 'PUBLISHED_IN'
+            JOIN Venues v
+              ON v.NodeID = published.TargetNodeID
+            JOIN Edges authored
+              ON authored.TargetNodeID = p.NodeID
+             AND authored.EdgeType = 'AUTHORED'
+            JOIN Authors a
+              ON a.NodeID = authored.SourceNodeID
+            WHERE p.Title LIKE ?
+            GROUP BY p.NodeID, p.Title, p.PublicationYear, p.DOI, v.Name, v.VenueKind, v.Quartile, v.ImpactScore
+            ORDER BY p.PublicationYear DESC, p.Title
+            """,
+            (f"%{query}%",),
+        ).fetchall()
+        return [dict(row) for row in rows]
+    finally:
+        connection.close()
+
+def search_institutions(query: str) -> list[dict]:
+    connection = get_connection()
+    try:
+        rows = connection.execute(
+            """
+            SELECT
+              i.NodeID AS institutionId,
+              i.Name AS name,
+              i.Country AS country,
+              COUNT(a.NodeID) AS authorCount
+            FROM Institutions i
+            LEFT JOIN Edges e
+              ON e.TargetNodeID = i.NodeID
+             AND e.EdgeType = 'AFFILIATED_WITH'
+            LEFT JOIN Authors a
+              ON a.NodeID = e.SourceNodeID
+            WHERE i.Name LIKE ?
+            GROUP BY i.NodeID, i.Name, i.Country
+            ORDER BY i.Name
+            """,
+            (f"%{query}%",),
+        ).fetchall()
+        return [dict(row) for row in rows]
+    finally:
+        connection.close()
+
+def search_venues(query: str) -> list[dict]:
+    connection = get_connection()
+    try:
+        rows = connection.execute(
+            """
+            SELECT
+              v.NodeID AS venueId,
+              v.Name AS name,
+              v.VenueKind AS venueKind,
+              v.Quartile AS quartile,
+              v.ImpactScore AS impactScore,
+              COUNT(p.NodeID) AS publicationCount
+            FROM Venues v
+            LEFT JOIN Edges e
+              ON e.TargetNodeID = v.NodeID
+             AND e.EdgeType = 'PUBLISHED_IN'
+            LEFT JOIN Publications p
+              ON p.NodeID = e.SourceNodeID
+            WHERE v.Name LIKE ?
+            GROUP BY v.NodeID, v.Name, v.VenueKind, v.Quartile, v.ImpactScore
+            ORDER BY v.Name
+            """,
+            (f"%{query}%",),
+        ).fetchall()
+        return [dict(row) for row in rows]
+    finally:
+        connection.close()
+
+def get_authors_by_institution(institution_id: int) -> list[dict]:
+    connection = get_connection()
+    try:
+        rows = connection.execute(
+            """
+            SELECT
+              a.NodeID,
+              a.FullName,
+              a.ResearchArea,
+              a.Email,
+              i.Name AS institutionName
+            FROM Authors a
+            JOIN Edges e
+              ON e.SourceNodeID = a.NodeID
+             AND e.EdgeType = 'AFFILIATED_WITH'
+            JOIN Institutions i
+              ON i.NodeID = e.TargetNodeID
+            WHERE i.NodeID = ?
+            ORDER BY a.FullName
+            """,
+            (institution_id,),
+        ).fetchall()
+        return [dict(row) for row in rows]
+    finally:
+        connection.close()
 
 def list_collections() -> dict:
     connection = get_connection()
@@ -368,7 +508,22 @@ def get_coauthor_network(author_id: object) -> dict | None:
     try:
         normalized_author_id = int(author_id)
         author = connection.execute(
-            "SELECT NodeID, FullName, ResearchArea FROM Authors WHERE NodeID = ?",
+            """
+            SELECT
+              a.NodeID,
+              a.FullName,
+              a.ResearchArea,
+              a.Email,
+              i.Name AS institutionName,
+              i.Country AS institutionCountry
+            FROM Authors a
+            JOIN Edges affiliation
+              ON affiliation.SourceNodeID = a.NodeID
+             AND affiliation.EdgeType = 'AFFILIATED_WITH'
+            JOIN Institutions i
+              ON i.NodeID = affiliation.TargetNodeID
+            WHERE a.NodeID = ?
+            """,
             (normalized_author_id,),
         ).fetchone()
 
@@ -414,10 +569,125 @@ def get_coauthor_network(author_id: object) -> dict | None:
             (*params, *params),
         ).fetchall()
 
+        collaborator_rows = connection.execute(
+            """
+            SELECT
+              collaborator.NodeID AS authorId,
+              collaborator.FullName AS authorName,
+              collaborator.ResearchArea AS researchArea,
+              institution.Name AS institutionName,
+              coauthor.Weight AS sharedPublications,
+              coauthor.EdgeYear AS latestYear
+            FROM Edges coauthor
+            JOIN Authors collaborator
+              ON collaborator.NodeID = CASE
+                WHEN coauthor.SourceNodeID = ? THEN coauthor.TargetNodeID
+                ELSE coauthor.SourceNodeID
+              END
+            JOIN Edges affiliation
+              ON affiliation.SourceNodeID = collaborator.NodeID
+             AND affiliation.EdgeType = 'AFFILIATED_WITH'
+            JOIN Institutions institution
+              ON institution.NodeID = affiliation.TargetNodeID
+            WHERE coauthor.EdgeType = 'CO_AUTHOR'
+              AND (coauthor.SourceNodeID = ? OR coauthor.TargetNodeID = ?)
+            ORDER BY coauthor.Weight DESC, collaborator.FullName
+            """,
+            (normalized_author_id, normalized_author_id, normalized_author_id),
+        ).fetchall()
+
+        shared_publication_rows = connection.execute(
+            """
+            SELECT
+              other_authored.SourceNodeID AS collaboratorId,
+              p.Title AS title,
+              p.PublicationYear AS publicationYear
+            FROM Edges selected_authored
+            JOIN Edges other_authored
+              ON other_authored.TargetNodeID = selected_authored.TargetNodeID
+             AND other_authored.EdgeType = 'AUTHORED'
+             AND other_authored.SourceNodeID != ?
+            JOIN Publications p
+              ON p.NodeID = selected_authored.TargetNodeID
+            WHERE selected_authored.EdgeType = 'AUTHORED'
+              AND selected_authored.SourceNodeID = ?
+            ORDER BY p.PublicationYear DESC, p.Title
+            """,
+            (normalized_author_id, normalized_author_id),
+        ).fetchall()
+
+        shared_publications_by_author: dict[int, list[dict]] = {}
+        for row in shared_publication_rows:
+            shared_publications_by_author.setdefault(row["collaboratorId"], []).append(
+                {"title": row["title"], "publicationYear": row["publicationYear"]}
+            )
+
+        collaborators = []
+        for row in collaborator_rows:
+            collaborator = dict(row)
+            collaborator["sharedPublicationsList"] = shared_publications_by_author.get(row["authorId"], [])
+            collaborators.append(collaborator)
+
+        publication_rows = connection.execute(
+            """
+            SELECT
+              p.NodeID AS publicationId,
+              p.Title AS title,
+              p.PublicationYear AS publicationYear,
+              p.DOI AS doi,
+              v.Name AS venueName,
+              v.Quartile AS quartile,
+              COUNT(DISTINCT citation.EdgeID) AS citationCount,
+              GROUP_CONCAT(DISTINCT other_author.FullName) AS coauthors
+            FROM Edges authored
+            JOIN Publications p
+              ON p.NodeID = authored.TargetNodeID
+            JOIN Edges published
+              ON published.SourceNodeID = p.NodeID
+             AND published.EdgeType = 'PUBLISHED_IN'
+            JOIN Venues v
+              ON v.NodeID = published.TargetNodeID
+            LEFT JOIN Edges citation
+              ON citation.TargetNodeID = p.NodeID
+             AND citation.EdgeType = 'CITES'
+            LEFT JOIN Edges other_authored
+              ON other_authored.TargetNodeID = p.NodeID
+             AND other_authored.EdgeType = 'AUTHORED'
+             AND other_authored.SourceNodeID != ?
+            LEFT JOIN Authors other_author
+              ON other_author.NodeID = other_authored.SourceNodeID
+            WHERE authored.EdgeType = 'AUTHORED'
+              AND authored.SourceNodeID = ?
+            GROUP BY p.NodeID, p.Title, p.PublicationYear, p.DOI, v.Name, v.Quartile
+            ORDER BY p.PublicationYear DESC, p.Title
+            """,
+            (normalized_author_id, normalized_author_id),
+        ).fetchall()
+
+        publications = [dict(row) for row in publication_rows]
+        total_shared_publications = int(sum(float(row["sharedPublications"] or 0) for row in collaborators))
+        strongest_collaborator = collaborators[0] if collaborators else None
+
         return {
             "author": dict(author),
             "nodes": [row_to_graph_node(row, isFocus=row["NodeID"] == normalized_author_id) for row in node_rows],
             "edges": [row_to_graph_edge(row) for row in edge_rows],
+            "summary": {
+                "directCoauthors": len(collaborators),
+                "publicationCount": len(publications),
+                "sharedPublications": total_shared_publications,
+                "institutionName": author["institutionName"],
+                "strongestCollaboration": (
+                    {
+                        "authorName": strongest_collaborator["authorName"],
+                        "sharedPublications": strongest_collaborator["sharedPublications"],
+                    }
+                    if strongest_collaborator
+                    else None
+                ),
+            },
+            "collaborators": collaborators,
+            "publications": publications,
             "definition": "One-hop co-author network centered on the selected author. Edge weight equals the number of shared publications.",
         }
     finally:
