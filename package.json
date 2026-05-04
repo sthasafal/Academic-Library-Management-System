@@ -7,7 +7,9 @@
     "start": "python backend/app.py",
     "dev": "python backend/app.py",
     "db:init": "python backend/app.py --init-db",
-    "test": "node --test"
+    "test": "node --test && python3 -m unittest discover -s tests -p 'test_*.py'",
+    "test:node": "node --test",
+    "test:python": "python3 -m unittest discover -s tests -p 'test_*.py'"
   },
   "dependencies": {
     "better-sqlite3": "^11.10.0"

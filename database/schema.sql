@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS Nodes (
   NodeID INTEGER PRIMARY KEY,
   NodeType TEXT NOT NULL CHECK (NodeType IN ('Author', 'Institution', 'Publication', 'Venue')),
   DisplayLabel TEXT NOT NULL,
+  AttributesJson TEXT NOT NULL DEFAULT '{}',
   CreatedAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 

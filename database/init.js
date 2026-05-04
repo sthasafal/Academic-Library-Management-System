@@ -11,6 +11,18 @@ function loadSchema() {
   return fs.readFileSync(path.resolve(__dirname, "./schema.sql"), "utf8");
 }
 
+function migrateSchema(db) {
+  const nodeColumns = db.prepare("PRAGMA table_info(Nodes)").all();
+  const hasAttributesJson = nodeColumns.some((column) => column.name === "AttributesJson");
+
+  if (!hasAttributesJson) {
+    db.exec(`
+      ALTER TABLE Nodes
+      ADD COLUMN AttributesJson TEXT NOT NULL DEFAULT '{}'
+    `);
+  }
+}
+
 export function ensureDatabase(options = {}) {
   const { force = false } = options;
 
@@ -20,6 +32,7 @@ export function ensureDatabase(options = {}) {
 
   const db = getDb();
   db.exec(loadSchema());
+  migrateSchema(db);
 
   const row = db.prepare("SELECT COUNT(*) AS count FROM Nodes").get();
 

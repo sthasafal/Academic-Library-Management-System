@@ -327,6 +327,30 @@ h2 {
   gap: 1rem;
 }
 
+.graph-catalog {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.9rem;
+}
+
+.graph-card {
+  padding: 1rem;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface-soft);
+}
+
+.graph-card h3 {
+  margin: 0.35rem 0 0.55rem;
+  font-family: "Fraunces", serif;
+  font-size: 1.25rem;
+}
+
+.graph-card p:last-of-type {
+  margin-bottom: 1rem;
+  color: var(--muted);
+}
+
 .action-card {
   display: block;
   min-height: 12rem;
@@ -377,6 +401,13 @@ h2 {
   gap: 0.6rem;
   align-items: center;
   margin-bottom: 0.8rem;
+}
+
+.checkbox-inline {
+  display: inline-flex;
+  gap: 0.45rem;
+  align-items: center;
+  font-weight: 700;
 }
 
 input,
@@ -433,6 +464,10 @@ select {
   margin: 1rem 0;
 }
 
+.profile-list.compact {
+  margin: 0.8rem 0;
+}
+
 .profile-list div {
   padding: 0.75rem 0;
   border-top: 1px solid var(--line);
@@ -452,6 +487,10 @@ select {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 0.7rem;
+}
+
+.metric-strip.compact .metric-block {
+  min-height: auto;
 }
 
 .metric-block {
@@ -484,6 +523,14 @@ select {
 
 .graph-panel {
   min-width: 0;
+}
+
+.node-detail-card {
+  margin-top: 0.9rem;
+  padding: 1rem;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface-soft);
 }
 
 .graph-legend {
@@ -581,6 +628,27 @@ select {
   overflow-x: auto;
 }
 
+.management-form {
+  margin-bottom: 1rem;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.9rem;
+  margin-bottom: 1rem;
+}
+
+.form-grid label {
+  display: grid;
+  gap: 0.35rem;
+  font-weight: 700;
+}
+
+.form-grid select[multiple] {
+  min-height: 8rem;
+}
+
 table {
   width: 100%;
   border-collapse: collapse;
@@ -640,17 +708,23 @@ th {
 
   .topnav,
   .overview,
-  .dashboard-actions {
+  .dashboard-actions,
+  .graph-catalog {
     display: grid;
     grid-template-columns: 1fr 1fr;
     width: 100%;
   }
 
-  .dashboard-actions {
+  .dashboard-actions,
+  .graph-catalog {
     grid-template-columns: 1fr;
   }
 
   .venue-list {
+    grid-template-columns: 1fr;
+  }
+
+  .form-grid {
     grid-template-columns: 1fr;
   }
 
@@ -695,4 +769,3 @@ button:hover {
 .institution-row:hover {
   background: var(--surface-soft);
 }
-

@@ -64,6 +64,25 @@ export function getOverviewStats() {
   };
 }
 
+export function listGraphs() {
+  const db = ensureDatabase();
+  return db.prepare(`
+    SELECT
+      g.GraphID,
+      g.GraphName,
+      g.Description,
+      COUNT(DISTINCT ng.NodeID) AS nodeCount,
+      COUNT(DISTINCT eg.EdgeID) AS edgeCount
+    FROM Graphs g
+    LEFT JOIN NodeGraphs ng
+      ON ng.GraphID = g.GraphID
+    LEFT JOIN EdgeGraphs eg
+      ON eg.GraphID = g.GraphID
+    GROUP BY g.GraphID, g.GraphName, g.Description
+    ORDER BY g.GraphID
+  `).all();
+}
+
 export function listAuthors() {
   const db = ensureDatabase();
   return db.prepare(`
@@ -364,6 +383,15 @@ export function listAuthorsByHIndex(minimum = 5) {
     }))
     .filter((author) => author.hIndex >= minimum)
     .sort((left, right) => right.hIndex - left.hIndex || left.authorName.localeCompare(right.authorName));
+}
+
+export function getHIndexReport(minimum = 5) {
+  return {
+    minimum,
+    definition:
+      `An author has h-index = h when at least h of their publications each have at least h incoming CITES edges in the citation graph. This query returns authors with h-index greater than or equal to ${minimum}.`,
+    authors: listAuthorsByHIndex(minimum)
+  };
 }
 
 export function getQ1InfluenceNetwork() {
