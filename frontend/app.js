@@ -369,7 +369,8 @@ function showPage() {
   refreshVisibleGraphs(activePage);
 }
 
-function createGraph(containerId, nodes, edges) {
+function createGraph(containerId, nodes, edges, options = {}) {
+  const { edgeLabelField = "type" } = options;
   return cytoscape({
     container: document.getElementById(containerId),
     elements: buildElements(nodes, edges),
@@ -462,7 +463,7 @@ function createGraph(containerId, nodes, edges) {
         selector: "edge",
         style: {
           width: "mapData(weight, 1, 5, 2, 8)",
-          label: "data(type)",
+          label: `data(${edgeLabelField})`,
           "font-size": 9,
           color: "#5b584f",
           "curve-style": "bezier",
@@ -665,7 +666,11 @@ async function loadCoauthors() {
   coauthorDefinition.textContent = result.definition;
   renderResearcherDetails(result);
   coauthorGraph?.destroy();
-  coauthorGraph = createGraph("coauthor-graph", result.nodes, result.edges);
+  const coauthorEdges = result.edges.map((edge) => ({
+    ...edge,
+    sharedLabel: String(edge.weight)
+  }));
+  coauthorGraph = createGraph("coauthor-graph", result.nodes, coauthorEdges, { edgeLabelField: "sharedLabel" });
   bindGraphInteractions(coauthorGraph, coauthorNodeDetail);
 }
 
