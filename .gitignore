@@ -1,6 +1,14 @@
-node_modules
+node_modules/
+
 data/*.db
 data/*.db-*
+
 .DS_Store
+
 __pycache__/
-*.pyc
+*/__pycache__/
+*.py[cod]
+
+.env
+.venv/
+venv/

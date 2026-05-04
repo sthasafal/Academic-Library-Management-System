@@ -1,0 +1,93 @@
+{
+  "graphs": [
+    {
+      "id": 1,
+      "name": "Collaboration Graph",
+      "description": "Authors, institutions, and collaboration relationships for network analysis."
+    },
+    {
+      "id": 2,
+      "name": "Citation Graph",
+      "description": "Publication citation structure used for influence metrics such as h-index."
+    },
+    {
+      "id": 3,
+      "name": "Venue Influence Graph",
+      "description": "Author-publication-venue paths enriched with journal quartile metadata."
+    }
+  ],
+  "institutions": [
+    { "id": 101, "name": "Rocky Mountain University", "country": "USA" },
+    { "id": 102, "name": "Pacific Tech", "country": "USA" },
+    { "id": 103, "name": "Lakeside Research Institute", "country": "Canada" },
+    { "id": 104, "name": "Global Science Lab", "country": "UK" },
+    { "id": 105, "name": "Eastern Knowledge University", "country": "USA" },
+    { "id": 106, "name": "Nordic Digital Library Center", "country": "Sweden" }
+  ],
+  "authors": [
+    { "id": 1, "fullName": "Alice Carter", "researchArea": "Scholarly Graph Analytics", "email": "alice.carter@rmu.edu", "institutionId": 101 },
+    { "id": 2, "fullName": "Ben Ortiz", "researchArea": "Digital Libraries", "email": "ben.ortiz@rmu.edu", "institutionId": 101 },
+    { "id": 3, "fullName": "Chloe Zhang", "researchArea": "Citation Networks", "email": "chloe.zhang@pacifictech.edu", "institutionId": 102 },
+    { "id": 4, "fullName": "Daniel Kim", "researchArea": "Metadata Systems", "email": "daniel.kim@pacifictech.edu", "institutionId": 102 },
+    { "id": 5, "fullName": "Emma Patel", "researchArea": "Scholarly Repositories", "email": "emma.patel@lri.ca", "institutionId": 103 },
+    { "id": 6, "fullName": "Farah Nasser", "researchArea": "Research Impact Modeling", "email": "farah.nasser@lri.ca", "institutionId": 103 },
+    { "id": 7, "fullName": "Grace Liu", "researchArea": "Human-Centered Discovery", "email": "grace.liu@gsl.ac.uk", "institutionId": 104 },
+    { "id": 8, "fullName": "Henry Brooks", "researchArea": "Science Mapping", "email": "henry.brooks@gsl.ac.uk", "institutionId": 104 },
+    { "id": 9, "fullName": "Ivy Nguyen", "researchArea": "Library UX Analytics", "email": "ivy.nguyen@eku.edu", "institutionId": 105 },
+    { "id": 10, "fullName": "Julian Park", "researchArea": "Research Evaluation", "email": "julian.park@eku.edu", "institutionId": 105 },
+    { "id": 11, "fullName": "Kiara Singh", "researchArea": "Knowledge Engineering", "email": "kiara.singh@eku.edu", "institutionId": 105 },
+    { "id": 12, "fullName": "Leo Martinez", "researchArea": "Federated Search", "email": "leo.martinez@ndl.se", "institutionId": 106 },
+    { "id": 13, "fullName": "Maya Hassan", "researchArea": "Scholarly Analytics", "email": "maya.hassan@ndl.se", "institutionId": 106 },
+    { "id": 14, "fullName": "Noah Rivera", "researchArea": "Metadata Governance", "email": "noah.rivera@rmu.edu", "institutionId": 101 },
+    { "id": 15, "fullName": "Olivia Stone", "researchArea": "Explainable IR", "email": "olivia.stone@pacifictech.edu", "institutionId": 102 },
+    { "id": 16, "fullName": "Priya Desai", "researchArea": "Citation Mining", "email": "priya.desai@lri.ca", "institutionId": 103 },
+    { "id": 17, "fullName": "Quentin Walsh", "researchArea": "Global Science Intelligence", "email": "quentin.walsh@gsl.ac.uk", "institutionId": 104 },
+    { "id": 18, "fullName": "Sofia Eriksen", "researchArea": "Multilingual Discovery", "email": "sofia.eriksen@ndl.se", "institutionId": 106 }
+  ],
+  "venues": [
+    { "id": 201, "name": "Journal of Graph Analytics", "kind": "Journal", "quartile": "Q1", "impactScore": 9.4 },
+    { "id": 202, "name": "Data Systems Review", "kind": "Journal", "quartile": "Q2", "impactScore": 6.8 },
+    { "id": 203, "name": "Network Science Letters", "kind": "Journal", "quartile": "Q1", "impactScore": 8.9 },
+    { "id": 204, "name": "Library Informatics Conference", "kind": "Conference", "quartile": null, "impactScore": 5.3 },
+    { "id": 205, "name": "Scholarly Data Mining Journal", "kind": "Journal", "quartile": "Q1", "impactScore": 9.1 },
+    { "id": 206, "name": "Regional Library Technology Review", "kind": "Journal", "quartile": "Q3", "impactScore": 4.7 },
+    { "id": 207, "name": "Open Knowledge Engineering Journal", "kind": "Journal", "quartile": "Q2", "impactScore": 7.2 },
+    { "id": 208, "name": "University Analytics Review", "kind": "Journal", "quartile": "Q2", "impactScore": 6.1 },
+    { "id": 209, "name": "Metadata Stewardship Symposium", "kind": "Conference", "quartile": null, "impactScore": 5.0 },
+    { "id": 210, "name": "Applied Research Discovery Journal", "kind": "Journal", "quartile": "Q1", "impactScore": 8.4 }
+  ],
+  "publications": [
+    { "id": 301, "title": "Graph Models for Digital Libraries", "year": 2020, "doi": "10.1000/alms.301", "venueId": 201, "authorIds": [1, 2] },
+    { "id": 302, "title": "Citation Flows in Academic Archives", "year": 2021, "doi": "10.1000/alms.302", "venueId": 203, "authorIds": [1, 3] },
+    { "id": 303, "title": "Metadata-Driven Discovery Systems", "year": 2021, "doi": "10.1000/alms.303", "venueId": 202, "authorIds": [1, 4] },
+    { "id": 304, "title": "Institutional Collaboration Graphs", "year": 2021, "doi": "10.1000/alms.304", "venueId": 205, "authorIds": [1, 5] },
+    { "id": 305, "title": "Temporal Citation Networks", "year": 2022, "doi": "10.1000/alms.305", "venueId": 201, "authorIds": [1, 6] },
+    { "id": 306, "title": "Knowledge Graph Interfaces for Librarians", "year": 2022, "doi": "10.1000/alms.306", "venueId": 204, "authorIds": [2, 7] },
+    { "id": 307, "title": "Research Data Stewardship at Scale", "year": 2020, "doi": "10.1000/alms.307", "venueId": 202, "authorIds": [3, 4] },
+    { "id": 308, "title": "Ranking Scholarly Venues with Graph Signals", "year": 2023, "doi": "10.1000/alms.308", "venueId": 205, "authorIds": [3, 5] },
+    { "id": 309, "title": "Q1-Aware Recommendation Paths", "year": 2024, "doi": "10.1000/alms.309", "venueId": 201, "authorIds": [3, 6] },
+    { "id": 310, "title": "Journal Influence Mapping", "year": 2021, "doi": "10.1000/alms.310", "venueId": 203, "authorIds": [3, 8] },
+    { "id": 311, "title": "Library AI Collaboration Atlas", "year": 2022, "doi": "10.1000/alms.311", "venueId": 204, "authorIds": [5, 7] },
+    { "id": 312, "title": "Repository Search Optimization", "year": 2024, "doi": "10.1000/alms.312", "venueId": 206, "authorIds": [2, 4] },
+    { "id": 313, "title": "Cross-Institutional Scholar Graphs", "year": 2023, "doi": "10.1000/alms.313", "venueId": 205, "authorIds": [5, 6] },
+    { "id": 314, "title": "Author Disambiguation in Repositories", "year": 2022, "doi": "10.1000/alms.314", "venueId": 201, "authorIds": [1, 3, 5] },
+    { "id": 315, "title": "Venue Signals for Academic Discovery", "year": 2024, "doi": "10.1000/alms.315", "venueId": 203, "authorIds": [1, 3] },
+    { "id": 316, "title": "Semantic Discovery Pipelines for Repositories", "year": 2023, "doi": "10.1000/alms.316", "venueId": 207, "authorIds": [9, 1] },
+    { "id": 317, "title": "Human-in-the-Loop Catalog Graphs", "year": 2022, "doi": "10.1000/alms.317", "venueId": 204, "authorIds": [9, 7] },
+    { "id": 318, "title": "Trustworthy Citation Recommendation", "year": 2025, "doi": "10.1000/alms.318", "venueId": 201, "authorIds": [10, 3, 6] },
+    { "id": 319, "title": "Research Impact Dashboards for Universities", "year": 2024, "doi": "10.1000/alms.319", "venueId": 208, "authorIds": [10, 2, 11] },
+    { "id": 320, "title": "Knowledge Base Normalization for Archives", "year": 2023, "doi": "10.1000/alms.320", "venueId": 202, "authorIds": [11, 4] },
+    { "id": 321, "title": "Open Metrics for Scholarly Platforms", "year": 2021, "doi": "10.1000/alms.321", "venueId": 207, "authorIds": [11, 12] },
+    { "id": 322, "title": "Federated Library Search Graphs", "year": 2025, "doi": "10.1000/alms.322", "venueId": 205, "authorIds": [12, 1, 13] },
+    { "id": 323, "title": "Institution-Level Citation Benchmarking", "year": 2024, "doi": "10.1000/alms.323", "venueId": 208, "authorIds": [13, 5, 10] },
+    { "id": 324, "title": "Sustainable Metadata Governance", "year": 2022, "doi": "10.1000/alms.324", "venueId": 209, "authorIds": [13, 14] },
+    { "id": 325, "title": "Explainable Venue Ranking Models", "year": 2025, "doi": "10.1000/alms.325", "venueId": 203, "authorIds": [14, 3, 15] },
+    { "id": 326, "title": "Researcher Identity Resolution at Scale", "year": 2023, "doi": "10.1000/alms.326", "venueId": 201, "authorIds": [15, 1] },
+    { "id": 327, "title": "Citation Context Mining in Repositories", "year": 2025, "doi": "10.1000/alms.327", "venueId": 210, "authorIds": [16, 6, 3] },
+    { "id": 328, "title": "Global Collaboration Signals for Science", "year": 2024, "doi": "10.1000/alms.328", "venueId": 205, "authorIds": [16, 8, 17] },
+    { "id": 329, "title": "Multilingual Academic Search Experiences", "year": 2025, "doi": "10.1000/alms.329", "venueId": 204, "authorIds": [17, 7, 18] },
+    { "id": 330, "title": "Graph ETL for Institutional Repositories", "year": 2023, "doi": "10.1000/alms.330", "venueId": 202, "authorIds": [18, 4, 11] },
+    { "id": 331, "title": "Scholarly Data Quality Auditing", "year": 2024, "doi": "10.1000/alms.331", "venueId": 206, "authorIds": [9, 13, 15] },
+    { "id": 332, "title": "Venue Diversity in Recommendation Systems", "year": 2025, "doi": "10.1000/alms.332", "venueId": 210, "authorIds": [12, 16, 5] }
+  ]
+}

@@ -10,17 +10,66 @@
     <link rel="stylesheet" href="/styles.css" />
   </head>
   <body>
+    <main id="auth-screen" class="auth-screen" aria-labelledby="auth-title">
+      <section class="auth-panel">
+        <div class="auth-intro">
+          <p class="brand-kicker">Academic Library</p>
+          <h1 id="auth-title">Library Management System</h1>
+          <p>Sign in to manage researchers, publication records, and academic network insights.</p>
+        </div>
+
+        <div class="auth-box">
+          <div class="auth-tabs" role="tablist" aria-label="Authentication options">
+            <button class="auth-tab is-active" type="button" data-auth-tab="login">Login</button>
+            <button class="auth-tab" type="button" data-auth-tab="signup">Sign up</button>
+          </div>
+
+          <form id="login-form" class="auth-form is-active" data-auth-form="login">
+            <label for="login-email">Email</label>
+            <input id="login-email" type="email" autocomplete="email" required />
+
+            <label for="login-password">Password</label>
+            <input id="login-password" type="password" autocomplete="current-password" required />
+
+            <button class="primary-button" type="submit">Login</button>
+          </form>
+
+          <form id="signup-form" class="auth-form" data-auth-form="signup">
+            <label for="signup-name">Full name</label>
+            <input id="signup-name" type="text" autocomplete="name" required />
+
+            <label for="signup-email">Email</label>
+            <input id="signup-email" type="email" autocomplete="email" required />
+
+            <label for="signup-password">Password</label>
+            <input id="signup-password" type="password" autocomplete="new-password" minlength="6" required />
+
+            <button class="primary-button" type="submit">Create account</button>
+          </form>
+
+          <p id="auth-message" class="auth-message" role="status"></p>
+        </div>
+      </section>
+    </main>
+
+    <div id="app-shell" class="app-shell" hidden>
     <header class="topbar">
       <div>
         <p class="brand-kicker">Academic Library</p>
         <h1 class="brand-title">Library Management System</h1>
       </div>
-      <nav class="topnav" aria-label="Primary">
-        <a href="#dashboard" data-page-link="dashboard">Dashboard</a>
-        <a href="#researchers" data-page-link="researchers">Researchers</a>
-        <a href="#collections" data-page-link="collections">Collections</a>
-        <a href="#analytics" data-page-link="analytics">Analytics</a>
-      </nav>
+      <div class="topbar-actions">
+        <nav class="topnav" aria-label="Primary">
+          <a href="#dashboard" data-page-link="dashboard">Dashboard</a>
+          <a href="#researchers" data-page-link="researchers">Researchers</a>
+          <a href="#collections" data-page-link="collections">Collections</a>
+          <a href="#analytics" data-page-link="analytics">Analytics</a>
+        </nav>
+        <div class="session-menu">
+          <span id="session-user"></span>
+          <button id="logout-button" class="secondary-button" type="button">Logout</button>
+        </div>
+      </div>
     </header>
 
     <main class="page">
@@ -34,7 +83,7 @@
             </p>
           </div>
           <div class="hero-note">
-            <strong>Project focus</strong>
+            <strong>Dashboard role</strong>
             <p>Library records are modeled as graph data so collaboration, citation, and journal influence can be explored directly.</p>
           </div>
         </section>
@@ -57,6 +106,35 @@
             <strong id="relationships-count">0</strong>
           </article>
         </section>
+
+        <section class="dashboard-actions" aria-label="Dashboard shortcuts">
+          <a class="action-card" href="#researchers">
+            <span class="eyebrow">Researchers</span>
+            <strong>Explore co-author connections</strong>
+            <p>Open the network graph and select an author to view collaboration paths.</p>
+          </a>
+          <a class="action-card" href="#collections">
+            <span class="eyebrow">Collections</span>
+            <strong>Browse publication records</strong>
+            <p>Review publications, venues, years, authors, and DOI details.</p>
+          </a>
+          <a class="action-card" href="#analytics">
+            <span class="eyebrow">Analytics</span>
+            <strong>Check impact signals</strong>
+            <p>Use the dedicated analytics tab for author impact and Q1 journal influence.</p>
+          </a>
+        </section>
+
+        <section class="panel">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Multi-Graph Model</p>
+              <h2>Graph Membership Overview</h2>
+            </div>
+            <p class="section-copy">Nodes and edges can belong to multiple named graphs through `NodeGraphs` and `EdgeGraphs` mapping tables.</p>
+          </div>
+          <div id="graph-catalog" class="graph-catalog"></div>
+        </section>
       </section>
 
       <section id="researchers" class="view panel" data-page="researchers">
@@ -67,12 +145,84 @@
           </div>
           <p class="section-copy">View author collaboration paths across the library network.</p>
         </div>
-        <div class="controls">
-          <label for="author-select">Select author</label>
-          <select id="author-select"></select>
+
+        <div class="researcher-toolbar">
+          <div class="controls">
+            <label for="author-select">Select author</label>
+            <select id="author-select"></select>
+            <label for="coauthor-year-filter">Since year</label>
+            <input id="coauthor-year-filter" type="number" min="2000" max="2100" placeholder="2022" />
+            <label class="checkbox-inline"><input id="toggle-authored-edges" type="checkbox" /> Include publications</label>
+            <label class="checkbox-inline"><input id="toggle-published-edges" type="checkbox" /> Include venues</label>
+            <label class="checkbox-inline"><input id="toggle-affiliation-edges" type="checkbox" /> Include institutions</label>
+            <button id="refresh-coauthor-graph" type="button">Apply graph filters</button>
+            <button id="export-coauthor-graph" type="button">Export graph PNG</button>
+          </div>
         </div>
+
         <p id="coauthor-definition" class="definition"></p>
-        <div id="coauthor-graph" class="graph-surface"></div>
+
+        <div class="researcher-grid">
+          <aside class="researcher-profile" aria-label="Selected author profile">
+            <div id="author-profile"></div>
+            <div id="researcher-stats" class="metric-strip"></div>
+          </aside>
+
+          <div class="graph-panel">
+            <div class="graph-legend" aria-label="Graph legend">
+              <span><i class="legend-dot focus-dot"></i>Selected author</span>
+              <span><i class="legend-dot coauthor-dot"></i>Co-author</span>
+              <span><i class="legend-line"></i>Shared publications</span>
+            </div>
+            <div id="coauthor-graph" class="graph-surface"></div>
+            <div id="coauthor-node-detail" class="node-detail-card">
+              <p class="eyebrow">Node Detail</p>
+              <p>Select a node in the graph to inspect its connected record.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="researcher-detail-grid">
+          <section>
+            <div class="subsection-head">
+              <p class="eyebrow">Collaborators</p>
+              <h3>Co-author list</h3>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Co-author</th>
+                    <th>Institution</th>
+                    <th>Shared</th>
+                    <th>Recent shared work</th>
+                  </tr>
+                </thead>
+                <tbody id="coauthor-list-body"></tbody>
+              </table>
+            </div>
+          </section>
+
+          <section>
+            <div class="subsection-head">
+              <p class="eyebrow">Publications</p>
+              <h3>Selected author work</h3>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Publication</th>
+                    <th>Year</th>
+                    <th>Venue</th>
+                    <th>Citations</th>
+                  </tr>
+                </thead>
+                <tbody id="author-publications-body"></tbody>
+              </table>
+            </div>
+          </section>
+        </div>
       </section>
 
       <section id="collections" class="view panel" data-page="collections">
@@ -83,7 +233,98 @@
           </div>
           <p class="section-copy">Browse publication records and the journals or conferences connected to them.</p>
         </div>
+
+        <section class="panel">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Search</p>
+              <h2>Search Records</h2>
+            </div>
+            <p class="section-copy">Search authors, publications, institutions, and venues.</p>
+          </div>
+
+          <div class="controls">
+            <label for="search-type">Search type</label>
+            <select id="search-type">
+              <option value="authors">Authors</option>
+              <option value="publications">Publications</option>
+              <option value="institutions">Institutions</option>
+              <option value="venues">Venues</option>
+            </select>
+
+            <label for="search-input">Search</label>
+            <input id="search-input" type="text" placeholder="Type to search..." list="search-suggestions" />
+            <datalist id="search-suggestions"></datalist>
+
+            <label for="search-year-from">Year from</label>
+            <input id="search-year-from" type="number" min="2000" max="2100" placeholder="2023" />
+
+            <label for="search-year-to">Year to</label>
+            <input id="search-year-to" type="number" min="2000" max="2100" placeholder="2025" />
+
+            <label for="search-quartile">Quartile</label>
+            <select id="search-quartile">
+              <option value="">Any</option>
+              <option value="Q1">Q1</option>
+              <option value="Q2">Q2</option>
+              <option value="Q3">Q3</option>
+              <option value="Q4">Q4</option>
+            </select>
+
+            <label for="search-country">Country</label>
+            <input id="search-country" type="text" placeholder="USA" />
+
+            <label for="search-venue-kind">Venue kind</label>
+            <select id="search-venue-kind">
+              <option value="">Any</option>
+              <option value="Journal">Journal</option>
+              <option value="Conference">Conference</option>
+            </select>
+
+            <label class="checkbox-inline"><input id="search-q1-only" type="checkbox" /> Q1 only</label>
+
+            <button id="search-button" type="button">Search</button>
+            <button id="export-search-results" type="button">Export results CSV</button>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead id="search-results-head"></thead>
+              <tbody id="search-results-body"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Institution Details</p>
+              <h2>Institution Authors</h2>
+            </div>
+            <p class="section-copy">When you select an institution, its authors will appear here.</p>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Author Name</th>
+                  <th>Research Area</th>
+                  <th>Email</th>
+                  <th>Institution</th>
+                </tr>
+              </thead>
+              <tbody id="institution-authors-body">
+                <tr>
+                  <td colspan="4">Select an institution to view its authors.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
         <div id="venue-list" class="venue-list"></div>
+
         <div class="table-wrap">
           <table>
             <thead>
@@ -98,6 +339,39 @@
             <tbody id="collections-body"></tbody>
           </table>
         </div>
+
+        <section class="panel">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Management</p>
+              <h2>Create, Edit, and Delete Records</h2>
+            </div>
+            <p class="section-copy">Manage authors, institutions, venues, and publications without resetting the seeded dataset.</p>
+          </div>
+
+          <div class="controls">
+            <label for="management-entity">Entity</label>
+            <select id="management-entity">
+              <option value="authors">Authors</option>
+              <option value="institutions">Institutions</option>
+              <option value="venues">Venues</option>
+              <option value="publications">Publications</option>
+            </select>
+
+            <button id="management-reset" type="button">Clear form</button>
+            <button id="export-management-records" type="button">Export table CSV</button>
+          </div>
+
+          <p id="management-message" class="definition"></p>
+          <form id="management-form" class="management-form"></form>
+
+          <div class="table-wrap">
+            <table>
+              <thead id="management-records-head"></thead>
+              <tbody id="management-records-body"></tbody>
+            </table>
+          </div>
+        </section>
       </section>
 
       <section id="analytics" class="view analytics-grid" data-page="analytics">
@@ -128,6 +402,37 @@
         <section class="panel">
           <div class="section-head">
             <div>
+              <p class="eyebrow">Influence Ranking</p>
+              <h2>Most Influential Authors</h2>
+            </div>
+            <p class="section-copy">Ranks authors by incoming citation volume across their publications.</p>
+          </div>
+          <div class="controls">
+            <label for="influential-year-from">Year from</label>
+            <input id="influential-year-from" type="number" min="2000" max="2100" placeholder="2022" />
+            <label class="checkbox-inline"><input id="influential-q1-only" type="checkbox" /> Q1 only</label>
+            <button id="refresh-influential-authors" type="button">Refresh ranking</button>
+            <button id="export-influential-authors" type="button">Export ranking CSV</button>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Author</th>
+                  <th>Total citations</th>
+                  <th>h-index</th>
+                  <th>Avg citations / paper</th>
+                  <th>Venues</th>
+                </tr>
+              </thead>
+              <tbody id="influential-authors-body"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="section-head">
+            <div>
               <p class="eyebrow">Journal Intelligence</p>
               <h2>Q1 Journal Influence Network</h2>
             </div>
@@ -135,10 +440,65 @@
           </div>
           <p id="q1-definition" class="definition"></p>
           <div id="q1-authors" class="pill-list"></div>
+          <div class="graph-legend" aria-label="Q1 influence graph legend">
+            <span><i class="legend-dot focus-dot"></i>Q1-publishing author</span>
+            <span><i class="legend-dot coauthor-dot"></i>Author linked by co-authorship</span>
+            <span><i class="legend-line"></i>Co-author relationship</span>
+          </div>
+          <div class="controls">
+            <button id="export-q1-graph" type="button">Export graph PNG</button>
+          </div>
           <div id="q1-graph" class="graph-surface"></div>
+          <div id="q1-node-detail" class="node-detail-card">
+            <p class="eyebrow">Node Detail</p>
+            <p>Select a node in the graph to inspect its connected record.</p>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Shortest Path</p>
+              <h2>Collaboration Path Finder</h2>
+            </div>
+            <p class="section-copy">Find the shortest co-author path between any two researchers in the graph.</p>
+          </div>
+          <div class="controls">
+            <label for="path-source-author">Source author</label>
+            <select id="path-source-author"></select>
+            <label for="path-target-author">Target author</label>
+            <select id="path-target-author"></select>
+            <button id="run-shortest-path" type="button">Find path</button>
+            <button id="export-path-graph" type="button">Export graph PNG</button>
+          </div>
+          <p id="shortest-path-summary" class="definition"></p>
+          <div id="shortest-path-graph" class="graph-surface"></div>
+        </section>
+
+        <section class="panel">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Institution Ranking</p>
+              <h2>Institution Collaboration Ranking</h2>
+            </div>
+            <p class="section-copy">Ranks institution pairs by the number of shared publications across affiliated researchers.</p>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Institution Pair</th>
+                  <th>Shared Publications</th>
+                  <th>Sample Titles</th>
+                </tr>
+              </thead>
+              <tbody id="institution-ranking-body"></tbody>
+            </table>
+          </div>
         </section>
       </section>
     </main>
+    </div>
 
     <script src="https://unpkg.com/cytoscape@3.30.4/dist/cytoscape.min.js"></script>
     <script type="module" src="/app.js"></script>

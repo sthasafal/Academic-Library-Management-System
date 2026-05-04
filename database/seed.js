@@ -1,9 +1,44 @@
 import { authors, citationPairs, graphs, institutions, publications, venues } from "./seedData.js";
 
+function buildNodeAttributes(type, record) {
+  if (type === "Institution") {
+    return JSON.stringify({
+      name: record.name,
+      country: record.country
+    });
+  }
+
+  if (type === "Author") {
+    return JSON.stringify({
+      fullName: record.fullName,
+      researchArea: record.researchArea,
+      email: record.email,
+      institutionId: record.institutionId
+    });
+  }
+
+  if (type === "Venue") {
+    return JSON.stringify({
+      name: record.name,
+      venueKind: record.kind,
+      quartile: record.quartile,
+      impactScore: record.impactScore
+    });
+  }
+
+  return JSON.stringify({
+    title: record.title,
+    publicationYear: record.year,
+    doi: record.doi,
+    venueId: record.venueId,
+    authorIds: record.authorIds
+  });
+}
+
 function insertNodes(db) {
   const insertNode = db.prepare(`
-    INSERT INTO Nodes (NodeID, NodeType, DisplayLabel)
-    VALUES (@id, @type, @label)
+    INSERT INTO Nodes (NodeID, NodeType, DisplayLabel, AttributesJson)
+    VALUES (@id, @type, @label, @attributesJson)
   `);
 
   const insertAuthor = db.prepare(`
@@ -27,22 +62,42 @@ function insertNodes(db) {
   `);
 
   for (const institution of institutions) {
-    insertNode.run({ id: institution.id, type: "Institution", label: institution.name });
+    insertNode.run({
+      id: institution.id,
+      type: "Institution",
+      label: institution.name,
+      attributesJson: buildNodeAttributes("Institution", institution)
+    });
     insertInstitution.run(institution);
   }
 
   for (const author of authors) {
-    insertNode.run({ id: author.id, type: "Author", label: author.fullName });
+    insertNode.run({
+      id: author.id,
+      type: "Author",
+      label: author.fullName,
+      attributesJson: buildNodeAttributes("Author", author)
+    });
     insertAuthor.run(author);
   }
 
   for (const venue of venues) {
-    insertNode.run({ id: venue.id, type: "Venue", label: venue.name });
+    insertNode.run({
+      id: venue.id,
+      type: "Venue",
+      label: venue.name,
+      attributesJson: buildNodeAttributes("Venue", venue)
+    });
     insertVenue.run(venue);
   }
 
   for (const publication of publications) {
-    insertNode.run({ id: publication.id, type: "Publication", label: publication.title });
+    insertNode.run({
+      id: publication.id,
+      type: "Publication",
+      label: publication.title,
+      attributesJson: buildNodeAttributes("Publication", publication)
+    });
     insertPublication.run(publication);
   }
 }
@@ -92,15 +147,15 @@ function insertEdges(db) {
       source: author.id,
       target: author.institutionId,
       type: "AFFILIATED_WITH",
-      year: null,
+      year: 2020,
       weight: 1,
-      metadata: JSON.stringify({ role: "faculty" })
+      metadata: JSON.stringify({ role: "faculty", startYear: 2020, endYear: null })
     });
     edgeId += 1;
   }
 
   for (const publication of publications) {
-    for (const authorId of publication.authorIds) {
+    for (const [index, authorId] of publication.authorIds.entries()) {
       insertEdge.run({
         id: edgeId,
         source: authorId,
@@ -108,7 +163,11 @@ function insertEdges(db) {
         type: "AUTHORED",
         year: publication.year,
         weight: 1,
-        metadata: JSON.stringify({ contribution: "co-author" })
+        metadata: JSON.stringify({
+          contribution: "co-author",
+          authorOrder: index + 1,
+          isLeadAuthor: index === 0
+        })
       });
       edgeId += 1;
     }
@@ -120,7 +179,7 @@ function insertEdges(db) {
       type: "PUBLISHED_IN",
       year: publication.year,
       weight: 1,
-      metadata: JSON.stringify({ venueYear: publication.year })
+      metadata: JSON.stringify({ venueYear: publication.year, peerReviewed: true })
     });
     edgeId += 1;
   }
@@ -133,7 +192,10 @@ function insertEdges(db) {
       type: "CO_AUTHOR",
       year: pair.latestYear,
       weight: pair.sharedCount,
-      metadata: JSON.stringify({ sharedPublications: pair.sharedCount })
+      metadata: JSON.stringify({
+        sharedPublications: pair.sharedCount,
+        strengthBand: pair.sharedCount >= 4 ? "strong" : pair.sharedCount >= 2 ? "medium" : "light"
+      })
     });
     edgeId += 1;
   }
@@ -148,7 +210,7 @@ function insertEdges(db) {
       type: "CITES",
       year: sourcePublication.year,
       weight: 1,
-      metadata: JSON.stringify({ relation: "citation" })
+      metadata: JSON.stringify({ relation: "citation", context: "Background or supporting work" })
     });
     edgeId += 1;
   }
